@@ -1,0 +1,5 @@
+{
+  "/api/donations/route": "app/api/donations/route.js",
+  "/api/friends/route": "app/api/friends/route.js",
+  "/dashboard/page": "app/dashboard/page.js"
+}
