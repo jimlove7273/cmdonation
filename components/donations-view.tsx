@@ -18,7 +18,7 @@ import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
 import { DonationType, FriendType } from '@/types/DataTypes';
 
 // Define the interface that matches what DonationForm expects
-interface Donation {
+type Donation = {
   id: string;
   date: string;
   friendId: string;
@@ -26,40 +26,7 @@ interface Donation {
   checkNumber: string;
   amount: number;
   notes: string;
-}
-
-const INITIAL_FRIENDS: FriendType[] = [
-  {
-    id: '1',
-    firstName: 'John',
-    lastName: 'Smith',
-    chineseName: '约翰',
-    address: '123 Main St',
-    city: 'New York',
-    state: 'NY',
-    zip: '10001',
-    dns: false,
-    phone: '555-0001',
-    email: 'john@example.com',
-    country: 'USA',
-    notes: 'Regular donor',
-  },
-  {
-    id: '2',
-    firstName: 'Jane',
-    lastName: 'Doe',
-    chineseName: '简',
-    address: '456 Oak Ave',
-    city: 'Los Angeles',
-    state: 'CA',
-    zip: '90001',
-    dns: true,
-    phone: '555-0002',
-    email: 'jane@example.com',
-    country: 'USA',
-    notes: 'Do not send receipt',
-  },
-];
+};
 
 // Adapter function to transform Supabase data to DonationForm format
 const transformDonation = (donation: DonationType): Donation => {
@@ -94,7 +61,7 @@ type SortColumn = 'eDate' | 'Friend' | 'Type' | 'Check' | 'Amount' | null;
 type SortDirection = 'asc' | 'desc';
 
 export function DonationsView() {
-  const [friends] = useState<FriendType[]>(INITIAL_FRIENDS);
+  const [friends, setFriends] = useState<FriendType[]>([]);
   const [donations, setDonations] = useState<DonationType[]>([]);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -107,6 +74,19 @@ export function DonationsView() {
   const [selectedDonation, setSelectedDonation] = useState<DonationType | null>(
     null,
   );
+
+  const refreshFriends = async () => {
+    try {
+      const response = await fetch('/api/friends');
+      if (!response.ok) {
+        throw new Error('Failed to fetch friends');
+      }
+      const data: FriendType[] = await response.json();
+      setFriends(data);
+    } catch (error) {
+      console.error('Error refreshing friends:', error);
+    }
+  };
 
   const refreshDonations = async () => {
     try {
@@ -125,10 +105,11 @@ export function DonationsView() {
     }
   };
 
-  // Fetch donations when component mounts
+  // Fetch donations and friends when component mounts
   useEffect(() => {
     console.log('DonationsView useEffect triggered');
     refreshDonations();
+    refreshFriends();
   }, []);
 
   const filteredDonations = donations.filter(

@@ -594,9 +594,6 @@
   .h-\[calc\(100\%-1px\)\] {
     height: calc(100% - 1px);
   }
-  .h-\[calc\(100vh-73px\)\] {
-    height: calc(100vh - 73px);
-  }
   .h-\[var\(--radix-navigation-menu-viewport-height\)\] {
     height: var(--radix-navigation-menu-viewport-height);
   }
@@ -611,6 +608,9 @@
   }
   .h-px {
     height: 1px;
+  }
+  .h-screen {
+    height: 100vh;
   }
   .h-svh {
     height: 100svh;
