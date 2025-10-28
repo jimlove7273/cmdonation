@@ -69,12 +69,15 @@ export async function updateDonation(
   donation: DonationType,
 ): Promise<DonationType | null> {
   try {
-    const updatedDonation: DonationType = await updateOne(
+    // Remove the id from the donation object since we don't want to update it
+    const { id: _, ...donationData } = donation;
+    const updatedDonationData: Omit<DonationType, 'id'> = await updateOne(
       DATASETS.DONATIONS,
       id,
-      donation,
+      donationData,
     );
-    return updatedDonation;
+    // Add the id back to the returned object
+    return { ...updatedDonationData, id };
   } catch (error) {
     console.error('Error updating donation:', error);
     return null;

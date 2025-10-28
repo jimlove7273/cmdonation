@@ -1,12 +1,9 @@
 import { NextResponse } from 'next/server';
 import {
   getAllDonations,
-  getOneDonation,
   createDonation,
-  updateDonation,
-  deleteDonation,
-} from '@/data/donationDatasets';
-import { DonationType } from '@/types/DataTypes';
+} from '../../../data/donationDatasets';
+import { DonationType } from '../../../types/DataTypes';
 
 // GET /api/donations - Get all donations
 export async function GET() {
@@ -46,54 +43,6 @@ export async function POST(request: Request) {
     console.error('Error creating donation:', error);
     return NextResponse.json(
       { error: 'Failed to create donation' },
-      { status: 500 },
-    );
-  }
-}
-
-// PUT /api/donations/:id - Update a donation
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } },
-) {
-  try {
-    const donationData: Omit<DonationType, 'id'> = await request.json();
-    // Include the ID from the URL parameter
-    const donationWithId: DonationType = {
-      ...donationData,
-      id: params.id,
-    };
-    const updatedDonation = await updateDonation(params.id, donationWithId);
-
-    if (!updatedDonation) {
-      return NextResponse.json(
-        { error: 'Failed to update donation' },
-        { status: 500 },
-      );
-    }
-
-    return NextResponse.json(updatedDonation);
-  } catch (error) {
-    console.error('Error updating donation:', error);
-    return NextResponse.json(
-      { error: 'Failed to update donation' },
-      { status: 500 },
-    );
-  }
-}
-
-// DELETE /api/donations/:id - Delete a donation
-export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } },
-) {
-  try {
-    await deleteDonation(params.id);
-    return NextResponse.json({ message: 'Donation deleted successfully' });
-  } catch (error) {
-    console.error('Error deleting donation:', error);
-    return NextResponse.json(
-      { error: 'Failed to delete donation' },
       { status: 500 },
     );
   }

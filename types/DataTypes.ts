@@ -6,7 +6,7 @@ export type FriendType = {
   address: string;
   city: string;
   state: string;
-  zip: string;
+  zipcode: string;
   dns: boolean;
   phone: string;
   email: string;

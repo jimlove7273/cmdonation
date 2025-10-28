@@ -1,6 +1,0 @@
-{
-  "/api/friends/route": "app/api/friends/route.js",
-  "/api/donations/route": "app/api/donations/route.js",
-  "/donations/page": "app/donations/page.js",
-  "/friends/page": "app/friends/page.js"
-}
