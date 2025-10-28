@@ -4,12 +4,10 @@ import { useAuth } from '@/contexts/AuthContext';
 import { LoginPage } from '@/components/login-page';
 import { FriendsView } from '@/components/friends-view';
 import { SidebarNavigation } from '@/components/sidebar-navigation';
-import { usePathname } from 'next/navigation';
 import PageHeader from '@/components/pageHeader';
 
 export default function FriendsPage() {
   const { isAuthenticated, login, isLoading } = useAuth();
-  const pathname = usePathname();
 
   const handleLogin = (username: string, password: string) => {
     const success = login(username, password);
@@ -40,7 +38,7 @@ export default function FriendsPage() {
 
         {/* Main Content */}
         <main className="flex-1 overflow-auto p-6">
-          <FriendsView key={pathname} />
+          <FriendsView />
         </main>
       </div>
     </div>

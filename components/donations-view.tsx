@@ -12,10 +12,10 @@ import {
   ChevronUp,
   ChevronDown,
 } from 'lucide-react';
-import { DonationForm } from '@/components/donation-form';
 import { DonationDetailView } from '@/components/donation-detail-view';
 import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
 import { DonationType, FriendType } from '@/types/DataTypes';
+import { useRouter } from 'next/navigation';
 
 // Define the interface that matches what DonationForm expects
 type Donation = {
@@ -63,8 +63,6 @@ type SortDirection = 'asc' | 'desc';
 export function DonationsView() {
   const [friends, setFriends] = useState<FriendType[]>([]);
   const [donations, setDonations] = useState<DonationType[]>([]);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -74,6 +72,7 @@ export function DonationsView() {
   const [selectedDonation, setSelectedDonation] = useState<DonationType | null>(
     null,
   );
+  const router = useRouter();
 
   const refreshFriends = async () => {
     try {
@@ -90,14 +89,11 @@ export function DonationsView() {
 
   const refreshDonations = async () => {
     try {
-      console.log('Refreshing donations from API...');
       const response = await fetch('/api/donations');
-      console.log('API response status:', response.status);
       if (!response.ok) {
         throw new Error('Failed to fetch donations');
       }
       const data: DonationType[] = await response.json();
-      console.log('Donations data from API:', data);
       setDonations(data);
     } catch (error) {
       console.error('Error refreshing donations:', error);
@@ -166,57 +162,6 @@ export function DonationsView() {
     setCurrentPage(1);
   };
 
-  const handleAddDonation = async (data: Omit<DonationType, 'id'>) => {
-    try {
-      const response = await fetch('/api/donations', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to add donation');
-      }
-
-      const newDonation: DonationType = await response.json();
-      setDonations([newDonation, ...donations]);
-      setIsFormOpen(false);
-    } catch (error) {
-      console.error('Error adding donation:', error);
-      // Optionally show an error message to the user
-    }
-  };
-
-  const handleUpdateDonation = async (data: Omit<DonationType, 'id'>) => {
-    if (!editingId) return;
-
-    try {
-      const response = await fetch(`/api/donations/${editingId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update donation');
-      }
-
-      const updatedDonation: DonationType = await response.json();
-      setDonations(
-        donations.map((d) => (d.id === editingId ? updatedDonation : d)),
-      );
-      setEditingId(null);
-      setIsFormOpen(false);
-    } catch (error) {
-      console.error('Error updating donation:', error);
-      // Optionally show an error message to the user
-    }
-  };
-
   const handleDeleteDonation = async () => {
     if (!deleteId) return;
 
@@ -237,17 +182,16 @@ export function DonationsView() {
     }
   };
 
-  const editingDonation = editingId
-    ? donations.find((d) => d.id === editingId)
-    : null;
-
   const getFriendName = (friendId: number) => {
     if (!friendId) return 'Unknown Friend';
-    const friend = friends.find((f) => f.id === friendId.toString());
-    return friend
-      ? `${friend.firstName || ''} ${friend.lastName || ''}`.trim() ||
-          `Friend ID: ${friendId}`
-      : `Friend ID: ${friendId}`;
+    const friend = friends.find((f) => f.id.toString() === friendId.toString());
+    if (friend) {
+      const fullName = `${friend.firstName || ''} ${
+        friend.lastName || ''
+      }`.trim();
+      return fullName ? `${fullName} (${friendId})` : `Friend ID: ${friendId}`;
+    }
+    return `Friend ID: ${friendId}`;
   };
 
   const handlePrintReceipts = () => {
@@ -265,8 +209,9 @@ export function DonationsView() {
       .map((d) => {
         const friend = friends.find((f) => f.id === d.Friend.toString());
         const friendName = friend
-          ? `${friend.firstName || ''} ${friend.lastName || ''}`.trim() ||
-            `Friend ID: ${d.Friend}`
+          ? `${friend.firstName || ''} ${friend.lastName || ''}`.trim()
+            ? `${friend.firstName || ''} ${friend.lastName || ''} (${d.Friend})`
+            : `Friend ID: ${d.Friend}`
           : `Friend ID: ${d.Friend}`;
         return `
       <div style="page-break-after: always; padding: 20px; border: 1px solid #ccc; margin-bottom: 20px;">
@@ -305,7 +250,7 @@ export function DonationsView() {
 
   const SortIndicator = ({ column }: { column: SortColumn }) => {
     if (sortColumn !== column)
-      return <span className="text-gray-400 ml-1">⇅</span>;
+      return <span className="text-gray-400 ml-1">↕</span>;
     return sortDirection === 'asc' ? (
       <ChevronUp className="w-4 h-4 inline ml-1" />
     ) : (
@@ -321,9 +266,7 @@ export function DonationsView() {
           donation={selectedDonation}
           friends={friends}
           onEdit={() => {
-            setEditingId(selectedDonation.id);
-            setIsFormOpen(true);
-            setSelectedDonation(null);
+            router.push(`/donations/${selectedDonation.id}`);
           }}
           onDelete={() => {
             setDeleteId(selectedDonation.id);
@@ -334,7 +277,7 @@ export function DonationsView() {
       )}
 
       {/* Header */}
-      {!selectedDonation && !isFormOpen && (
+      {!selectedDonation && (
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-gray-900">Donations</h2>
           <div className="flex gap-2">
@@ -356,8 +299,7 @@ export function DonationsView() {
             </Button>
             <Button
               onClick={() => {
-                setEditingId(null);
-                setIsFormOpen(true);
+                router.push('/donations/add');
               }}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
@@ -368,28 +310,8 @@ export function DonationsView() {
         </div>
       )}
 
-      {/* Form */}
-      {isFormOpen && (
-        <DonationForm
-          donation={editingDonation ? transformDonation(editingDonation) : null}
-          friends={friends}
-          onSubmit={(data) => {
-            const supabaseData = transformDonationForSupabase(data);
-            if (editingId) {
-              handleUpdateDonation(supabaseData);
-            } else {
-              handleAddDonation(supabaseData);
-            }
-          }}
-          onCancel={() => {
-            setIsFormOpen(false);
-            setEditingId(null);
-          }}
-        />
-      )}
-
       {/* Search and Table */}
-      {!selectedDonation && !isFormOpen && (
+      {!selectedDonation && (
         <>
           {/* Search */}
           <Input
@@ -482,8 +404,7 @@ export function DonationsView() {
                           <button
                             onClick={(e) => {
                               e.stopPropagation(); // Prevent row click
-                              setEditingId(donation.id);
-                              setIsFormOpen(true);
+                              router.push(`/donations/${donation.id}`);
                             }}
                             className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
                             title="Edit"

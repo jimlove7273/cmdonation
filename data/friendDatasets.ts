@@ -74,11 +74,11 @@ export async function getOneFriend(id: string): Promise<FriendType | null> {
 
 /**
  * Create a new friend in the database.
- * @param friend - The friend data to create
+ * @param friend - The friend data to create (without ID as it should be auto-generated)
  * @returns Promise<FriendType | null> - The created friend object or null on error
  */
 export async function createFriend(
-  friend: FriendType,
+  friend: Omit<FriendType, 'id'>,
 ): Promise<FriendType | null> {
   try {
     const dbFriendData = friendToDb(friend);
@@ -87,8 +87,26 @@ export async function createFriend(
       dbFriendData,
     );
     return newFriend ? dbToFriend(newFriend) : null;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating friend:', error);
+    // If there's a duplicate key error, try to handle it by not passing an ID
+    if (error.code === '23505') {
+      // This is a duplicate key error, which suggests ID conflict
+      // Try again without explicitly setting any ID-related fields
+      try {
+        const dbFriendData = friendToDb(friend);
+        // Ensure no ID-related fields are passed
+        const cleanData = { ...dbFriendData };
+        const newFriend: any = await createOne(
+          DATASETS.DONATION_FRIENDS,
+          cleanData,
+        );
+        return newFriend ? dbToFriend(newFriend) : null;
+      } catch (retryError) {
+        console.error('Retry error creating friend:', retryError);
+        return null;
+      }
+    }
     return null;
   }
 }

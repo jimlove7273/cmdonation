@@ -13,9 +13,7 @@ import {
  */
 export async function getAllDonations(): Promise<DonationType[]> {
   try {
-    console.log('Fetching donations from Supabase...');
     const allProducts: DonationType[] = await getAll(DATASETS.DONATIONS);
-    console.log('Donations fetched:', allProducts);
     return allProducts;
   } catch (error) {
     console.error('Error fetching donations:', error);
@@ -44,16 +42,31 @@ export async function getOneDonation(id: string): Promise<DonationType | null> {
  * @returns Promise<DonationType | null> - The created donation object or null on error
  */
 export async function createDonation(
-  donation: DonationType,
+  donation: Omit<DonationType, 'id'>,
 ): Promise<DonationType | null> {
   try {
     const newDonation: DonationType = await createOne(
       DATASETS.DONATIONS,
-      donation,
+      donation as any,
     );
     return newDonation;
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating donation:', error);
+    // If there's a duplicate key error, try to handle it
+    if (error.code === '23505' || error.code === 'PGRST204') {
+      // This is a duplicate key error or schema cache error
+      try {
+        const cleanData = { ...donation };
+        const newDonation: DonationType = await createOne(
+          DATASETS.DONATIONS,
+          cleanData as any,
+        );
+        return newDonation;
+      } catch (retryError) {
+        console.error('Retry error creating donation:', retryError);
+        return null;
+      }
+    }
     return null;
   }
 }

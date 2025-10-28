@@ -22,11 +22,14 @@ export function DonationDetailView({
 }: DonationDetailViewProps) {
   const getFriendName = (friendId: number) => {
     if (!friendId) return 'Unknown Friend';
-    const friend = friends.find((f) => f.id === friendId.toString());
-    return friend
-      ? `${friend.firstName || ''} ${friend.lastName || ''}`.trim() ||
-          `Friend ID: ${friendId}`
-      : `Friend ID: ${friendId}`;
+    const friend = friends.find((f) => f.id.toString() === friendId.toString());
+    if (friend) {
+      const fullName = `${friend.firstName || ''} ${
+        friend.lastName || ''
+      }`.trim();
+      return fullName ? `${fullName} (${friendId})` : `Friend ID: ${friendId}`;
+    }
+    return `Friend ID: ${friendId}`;
   };
 
   return (
@@ -66,25 +69,25 @@ export function DonationDetailView({
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-base font-medium text-gray-700">
                   ID
                 </label>
                 <p className="mt-1 text-sm text-gray-900">{donation.id}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-base font-medium text-gray-700">
                   Date
                 </label>
                 <p className="mt-1 text-sm text-gray-900">{donation.eDate}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-base font-medium text-gray-700">
                   Type
                 </label>
                 <p className="mt-1 text-sm text-gray-900">{donation.Type}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-base font-medium text-gray-700">
                   Check Number
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
@@ -92,7 +95,7 @@ export function DonationDetailView({
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-base font-medium text-gray-700">
                   Amount
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
@@ -108,13 +111,13 @@ export function DonationDetailView({
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-base font-medium text-gray-700">
                   Friend ID
                 </label>
                 <p className="mt-1 text-sm text-gray-900">{donation.Friend}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-base font-medium text-gray-700">
                   Friend Name
                 </label>
                 <p className="mt-1 text-sm text-gray-900">
@@ -128,7 +131,7 @@ export function DonationDetailView({
             </h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700">
+                <label className="block text-base font-medium text-gray-700">
                   Notes
                 </label>
                 <p className="mt-1 text-sm text-gray-900">

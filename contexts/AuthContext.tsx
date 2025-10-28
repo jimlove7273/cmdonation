@@ -1,37 +1,103 @@
-"use client"
+'use client';
 
-import React, { createContext, useContext, useState, useEffect } from "react"
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+} from 'react';
+import { useRouter } from 'next/navigation';
 
 type AuthContextType = {
-  isAuthenticated: boolean
-  username: string | null
-  login: (username: string, password: string) => boolean
-  logout: () => void
-  isLoading: boolean
-}
+  isAuthenticated: boolean;
+  username: string | null;
+  login: (username: string, password: string) => boolean;
+  logout: () => void;
+  isLoading: boolean;
+};
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 /**
  * Provider component that wraps the app and manages authentication state.
  * Handles login persistence via localStorage and provides auth context to all children.
  */
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [username, setUsername] = useState<string | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [username, setUsername] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const inactivityTimer = useRef<NodeJS.Timeout | null>(null);
+  const router = useRouter();
+  const INACTIVITY_LIMIT = 10 * 60 * 1000; // 10 minutes in milliseconds
+
+  // Reset the inactivity timer
+  const resetInactivityTimer = () => {
+    if (inactivityTimer.current) {
+      clearTimeout(inactivityTimer.current);
+    }
+
+    if (isAuthenticated) {
+      inactivityTimer.current = setTimeout(() => {
+        logout();
+        alert('You have been logged out due to inactivity.');
+        // Redirect to donations page after inactivity logout
+        router.push('/donations');
+      }, INACTIVITY_LIMIT);
+    }
+  };
+
+  // Set up event listeners for user activity
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Reset timer on user activity
+      const events = [
+        'mousedown',
+        'mousemove',
+        'keypress',
+        'scroll',
+        'touchstart',
+        'click',
+      ];
+      events.forEach((event) => {
+        window.addEventListener(event, resetInactivityTimer, true);
+      });
+
+      // Start the initial timer
+      resetInactivityTimer();
+    }
+
+    return () => {
+      // Clean up event listeners and timer
+      const events = [
+        'mousedown',
+        'mousemove',
+        'keypress',
+        'scroll',
+        'touchstart',
+        'click',
+      ];
+      events.forEach((event) => {
+        window.removeEventListener(event, resetInactivityTimer, true);
+      });
+
+      if (inactivityTimer.current) {
+        clearTimeout(inactivityTimer.current);
+      }
+    };
+  }, [isAuthenticated]);
 
   // Check for existing session on mount
   useEffect(() => {
-    const storedAuth = localStorage.getItem("isAuthenticated")
-    const storedUsername = localStorage.getItem("username")
-    
-    if (storedAuth === "true" && storedUsername) {
-      setIsAuthenticated(true)
-      setUsername(storedUsername)
+    const storedAuth = localStorage.getItem('isAuthenticated');
+    const storedUsername = localStorage.getItem('username');
+
+    if (storedAuth === 'true' && storedUsername) {
+      setIsAuthenticated(true);
+      setUsername(storedUsername);
     }
-    setIsLoading(false)
-  }, [])
+    setIsLoading(false);
+  }, []);
 
   /**
    * Authenticates a user with username and password.
@@ -40,32 +106,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
    */
   const login = (username: string, password: string): boolean => {
     // Simple authentication - hardcoded credentials
-    if (username === "admin" && password === "password") {
-      setIsAuthenticated(true)
-      setUsername(username)
-      localStorage.setItem("isAuthenticated", "true")
-      localStorage.setItem("username", username)
-      return true
+    if (username === 'admin' && password === 'password') {
+      setIsAuthenticated(true);
+      setUsername(username);
+      localStorage.setItem('isAuthenticated', 'true');
+      localStorage.setItem('username', username);
+      resetInactivityTimer(); // Start the inactivity timer after login
+
+      // Redirect to donations page after successful login
+      router.push('/donations');
+      return true;
     }
-    return false
-  }
+    return false;
+  };
 
   /**
    * Logs out the current user and clears all authentication data.
    * Removes auth state from localStorage.
    */
   const logout = () => {
-    setIsAuthenticated(false)
-    setUsername(null)
-    localStorage.removeItem("isAuthenticated")
-    localStorage.removeItem("username")
-  }
+    setIsAuthenticated(false);
+    setUsername(null);
+    localStorage.removeItem('isAuthenticated');
+    localStorage.removeItem('username');
+
+    // Clear the inactivity timer
+    if (inactivityTimer.current) {
+      clearTimeout(inactivityTimer.current);
+    }
+  };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, username, login, logout, isLoading }}>
+    <AuthContext.Provider
+      value={{ isAuthenticated, username, login, logout, isLoading }}
+    >
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
 /**
@@ -74,9 +151,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
  * @throws Error if used outside of AuthProvider
  */
 export function useAuth() {
-  const context = useContext(AuthContext)
+  const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error("useAuth must be used within an AuthProvider")
+    throw new Error('useAuth must be used within an AuthProvider');
   }
-  return context
+  return context;
 }

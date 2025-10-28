@@ -5,9 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Plus, Edit2, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
-import { FriendForm } from '@/components/friend-form';
 import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
 import { FriendType } from '@/types/DataTypes';
+import { useRouter } from 'next/navigation';
 
 type SortColumn =
   | 'id'
@@ -21,14 +21,13 @@ type SortDirection = 'asc' | 'desc';
 
 export function FriendsView() {
   const [friends, setFriends] = useState<FriendType[]>([]);
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [sortColumn, setSortColumn] = useState<SortColumn>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const router = useRouter();
 
   const refreshFriends = async () => {
     try {
@@ -103,52 +102,6 @@ export function FriendsView() {
     setCurrentPage(1);
   };
 
-  const handleAddFriend = async (data: Omit<FriendType, 'id'>) => {
-    try {
-      const response = await fetch('/api/friends', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to add friend');
-      }
-
-      const newFriend: FriendType = await response.json();
-      setFriends([newFriend, ...friends]);
-      setIsFormOpen(false);
-    } catch (error) {
-      console.error('Error adding friend:', error);
-    }
-  };
-
-  const handleUpdateFriend = async (data: Omit<FriendType, 'id'>) => {
-    if (!editingId) return;
-    try {
-      const response = await fetch(`/api/friends/${editingId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to update friend');
-      }
-
-      const updatedFriend: FriendType = await response.json();
-      setFriends(friends.map((f) => (f.id === editingId ? updatedFriend : f)));
-      setEditingId(null);
-      setIsFormOpen(false);
-    } catch (error) {
-      console.error('Error updating friend:', error);
-    }
-  };
-
   const handleDeleteFriend = async () => {
     if (!deleteId) return;
     try {
@@ -166,10 +119,6 @@ export function FriendsView() {
       console.error('Error deleting friend:', error);
     }
   };
-
-  const editingFriend = editingId
-    ? friends.find((f) => f.id === editingId)
-    : null;
 
   const SortIndicator = ({ column }: { column: SortColumn }) => {
     if (sortColumn !== column)
@@ -198,8 +147,7 @@ export function FriendsView() {
           </Button>
           <Button
             onClick={() => {
-              setEditingId(null);
-              setIsFormOpen(true);
+              router.push('/friends/add');
             }}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
@@ -209,215 +157,198 @@ export function FriendsView() {
         </div>
       </div>
 
-      {/* Form */}
-      {isFormOpen && (
-        <FriendForm
-          friend={editingFriend}
-          onSubmit={editingId ? handleUpdateFriend : handleAddFriend}
-          onCancel={() => {
-            setIsFormOpen(false);
-            setEditingId(null);
-          }}
-        />
-      )}
+      {/* Search */}
+      <Input
+        placeholder="Search by name, email, or phone..."
+        value={searchTerm}
+        onChange={(e) => handleSearch(e.target.value)}
+        className="bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+      />
 
-      {!isFormOpen && (
-        <>
-          {/* Search */}
-          <Input
-            placeholder="Search by name, email, or phone..."
-            value={searchTerm}
-            onChange={(e) => handleSearch(e.target.value)}
-            className="bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-          />
-
-          {/* Table */}
-          <Card className="bg-white border-gray-200 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-gray-200 bg-gray-50">
-                    <th
-                      className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSort('id')}
-                    >
-                      ID <SortIndicator column="id" />
-                    </th>
-                    <th
-                      className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSort('firstName')}
-                    >
-                      First Name <SortIndicator column="firstName" />
-                    </th>
-                    <th
-                      className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSort('lastName')}
-                    >
-                      Last Name <SortIndicator column="lastName" />
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                      Chinese Name
-                    </th>
-                    <th
-                      className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSort('email')}
-                    >
-                      Email <SortIndicator column="email" />
-                    </th>
-                    <th
-                      className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSort('phone')}
-                    >
-                      Phone <SortIndicator column="phone" />
-                    </th>
-                    <th
-                      className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                      onClick={() => handleSort('city')}
-                    >
-                      City <SortIndicator column="city" />
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                      DNS
-                    </th>
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedFriends.map((friend) => (
-                    <tr
-                      key={friend.id}
-                      className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {friend.id}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {friend.firstName}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {friend.lastName}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {friend.chineseName}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {friend.email}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {friend.phone}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {friend.city}
-                      </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">
-                        {friend.dns ? (
-                          <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">
-                            Yes
-                          </span>
-                        ) : (
-                          <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
-                            No
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-6 py-4 text-sm">
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => {
-                              setEditingId(friend.id);
-                              setIsFormOpen(true);
-                            }}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
-                            title="Edit"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => setDeleteId(friend.id)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-
-          <div className="flex items-center justify-between bg-white p-4 rounded border border-gray-200">
-            <div className="flex items-center gap-4">
-              <span className="text-sm text-gray-600">
-                Showing {startIndex + 1} to{' '}
-                {Math.min(startIndex + itemsPerPage, sortedFriends.length)} of{' '}
-                {sortedFriends.length} friends
-              </span>
-              <div className="flex items-center gap-2">
-                <label className="text-sm text-gray-600">Per page:</label>
-                <select
-                  value={itemsPerPage}
-                  onChange={(e) => {
-                    setItemsPerPage(Number(e.target.value));
-                    setCurrentPage(1);
-                  }}
-                  className="px-3 py-1 border border-gray-300 rounded text-sm bg-white text-gray-900"
+      {/* Table */}
+      <Card className="bg-white border-gray-200 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-gray-200 bg-gray-50">
+                <th
+                  className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('id')}
                 >
-                  <option value={20}>20</option>
-                  <option value={50}>50</option>
-                  <option value={100}>100</option>
-                </select>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                disabled={currentPage === 1}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-900 disabled:opacity-50"
-              >
-                Previous
-              </Button>
-              <div className="flex gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1)
-                  .filter((page) => {
-                    const distance = Math.abs(page - currentPage);
-                    return distance <= 2 || page === 1 || page === totalPages;
-                  })
-                  .map((page, idx, arr) => (
-                    <div key={page}>
-                      {idx > 0 && arr[idx - 1] !== page - 1 && (
-                        <span className="px-2 text-gray-400">...</span>
-                      )}
-                      <Button
-                        onClick={() => setCurrentPage(page)}
-                        className={
-                          currentPage === page
-                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                            : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
-                        }
+                  ID <SortIndicator column="id" />
+                </th>
+                <th
+                  className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('firstName')}
+                >
+                  First Name <SortIndicator column="firstName" />
+                </th>
+                <th
+                  className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('lastName')}
+                >
+                  Last Name <SortIndicator column="lastName" />
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+                  Chinese Name
+                </th>
+                <th
+                  className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('email')}
+                >
+                  Email <SortIndicator column="email" />
+                </th>
+                <th
+                  className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('phone')}
+                >
+                  Phone <SortIndicator column="phone" />
+                </th>
+                <th
+                  className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                  onClick={() => handleSort('city')}
+                >
+                  City <SortIndicator column="city" />
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+                  DNS
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
+                  Actions
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedFriends.map((friend) => (
+                <tr
+                  key={friend.id}
+                  className="border-b border-gray-200 hover:bg-gray-50 transition-colors"
+                >
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {friend.id}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {friend.firstName}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {friend.lastName}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {friend.chineseName}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {friend.email}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {friend.phone}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {friend.city}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-900">
+                    {friend.dns ? (
+                      <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">
+                        Yes
+                      </span>
+                    ) : (
+                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">
+                        No
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4 text-sm">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          router.push(`/friends/${friend.id}`);
+                        }}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded transition-colors"
+                        title="Edit"
                       >
-                        {page}
-                      </Button>
+                        <Edit2 className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setDeleteId(friend.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
-                  ))}
-              </div>
-              <Button
-                onClick={() =>
-                  setCurrentPage(Math.min(totalPages, currentPage + 1))
-                }
-                disabled={currentPage === totalPages}
-                className="bg-gray-200 hover:bg-gray-300 text-gray-900 disabled:opacity-50"
-              >
-                Next
-              </Button>
-            </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      <div className="flex items-center justify-between bg-white p-4 rounded border border-gray-200">
+        <div className="flex items-center gap-4">
+          <span className="text-sm text-gray-600">
+            Showing {startIndex + 1} to{' '}
+            {Math.min(startIndex + itemsPerPage, sortedFriends.length)} of{' '}
+            {sortedFriends.length} friends
+          </span>
+          <div className="flex items-center gap-2">
+            <label className="text-sm text-gray-600">Per page:</label>
+            <select
+              value={itemsPerPage}
+              onChange={(e) => {
+                setItemsPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className="px-3 py-1 border border-gray-300 rounded text-sm bg-white text-gray-900"
+            >
+              <option value={20}>20</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </select>
           </div>
-        </>
-      )}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+            disabled={currentPage === 1}
+            className="bg-gray-200 hover:bg-gray-300 text-gray-900 disabled:opacity-50"
+          >
+            Previous
+          </Button>
+          <div className="flex gap-1">
+            {Array.from({ length: totalPages }, (_, i) => i + 1)
+              .filter((page) => {
+                const distance = Math.abs(page - currentPage);
+                return distance <= 2 || page === 1 || page === totalPages;
+              })
+              .map((page, idx, arr) => (
+                <div key={page}>
+                  {idx > 0 && arr[idx - 1] !== page - 1 && (
+                    <span className="px-2 text-gray-400">...</span>
+                  )}
+                  <Button
+                    onClick={() => setCurrentPage(page)}
+                    className={
+                      currentPage === page
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                        : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
+                    }
+                  >
+                    {page}
+                  </Button>
+                </div>
+              ))}
+          </div>
+          <Button
+            onClick={() =>
+              setCurrentPage(Math.min(totalPages, currentPage + 1))
+            }
+            disabled={currentPage === totalPages}
+            className="bg-gray-200 hover:bg-gray-300 text-gray-900 disabled:opacity-50"
+          >
+            Next
+          </Button>
+        </div>
+      </div>
 
       {/* Delete Confirmation */}
       {deleteId && (

@@ -9,13 +9,34 @@ export async function getAll<T>(table: string): Promise<T[]> {
   const supabase = supabaseServer();
   if (!supabase) throw new Error('Supabase client initialization failed');
 
-  console.log(`Fetching all records from table: ${table}`);
-  const { data, error } = await supabase.from(table).select('*');
-  console.log(`Data fetched from ${table}:`, data);
-  console.log(`Error from ${table}:`, error);
+  // Fetch all records using pagination to avoid limits
+  let allData: T[] = [];
+  let start = 0;
+  const limit = 1000;
+  let finished = false;
 
-  if (error) throw error;
-  return data as T[];
+  while (!finished) {
+    const { data, error } = await supabase
+      .from(table)
+      .select('*')
+      .range(start, start + limit - 1);
+
+    if (error) throw error;
+
+    if (data.length === 0) {
+      finished = true;
+    } else {
+      allData = [...allData, ...(data as T[])];
+      start += limit;
+
+      // If we got fewer records than the limit, we're done
+      if (data.length < limit) {
+        finished = true;
+      }
+    }
+  }
+
+  return allData;
 }
 
 /**

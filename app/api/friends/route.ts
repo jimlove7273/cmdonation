@@ -20,7 +20,9 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const friendData: Omit<FriendType, 'id'> = await request.json();
-    const newFriend = await createFriend(friendData as FriendType);
+    // When creating a friend, we don't pass an ID as the database should auto-generate it
+    const friendWithoutId: any = friendData;
+    const newFriend = await createFriend(friendWithoutId as any);
 
     if (!newFriend) {
       return NextResponse.json(

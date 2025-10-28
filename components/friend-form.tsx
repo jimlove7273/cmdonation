@@ -41,6 +41,14 @@ export function FriendForm({ friend, onSubmit, onCancel }: FriendFormProps) {
       <h3 className="text-lg font-semibold text-gray-900 mb-4">
         {friend ? 'Edit Friend' : 'Add New Friend'}
       </h3>
+      {friend && (
+        <div className="mb-4 p-3 bg-gray-50 rounded-md">
+          <label className="block text-sm font-medium text-gray-700">
+            Friend ID
+          </label>
+          <p className="mt-1 text-sm text-gray-900 font-mono">{friend.id}</p>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-3 gap-4">
           <div>

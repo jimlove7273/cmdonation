@@ -4,9 +4,6 @@ export const supabaseServer = () => {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  console.log('Supabase URL:', supabaseUrl);
-  console.log('Supabase Service Key exists:', !!supabaseServiceKey);
-
   // Check if environment variables are set
   if (!supabaseUrl) {
     console.error('NEXT_PUBLIC_SUPABASE_URL is not set');
@@ -20,7 +17,6 @@ export const supabaseServer = () => {
 
   try {
     const client = createClient(supabaseUrl, supabaseServiceKey);
-    console.log('Supabase client initialized successfully');
     return client;
   } catch (error) {
     console.error('Failed to initialize Supabase server client:', error);

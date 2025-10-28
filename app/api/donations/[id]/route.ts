@@ -37,13 +37,30 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const donationData: Omit<DonationType, 'id'> = await request.json();
-    // Include the ID from the URL parameter
-    const donationWithId: DonationType = {
-      ...donationData,
-      id,
+    const donationData = await request.json();
+
+    // Transform the incoming data to match the database schema
+    const dbDonationData: Omit<DonationType, 'id'> = {
+      created_at: new Date().toISOString(),
+      eDate: donationData.date || donationData.eDate,
+      Friend: donationData.friendId || donationData.Friend,
+      Type: donationData.donationType || donationData.Type,
+      Check: donationData.checkNumber || donationData.Check,
+      Amount:
+        donationData.amount !== undefined
+          ? donationData.amount
+          : donationData.Amount,
+      Notes:
+        donationData.notes !== undefined
+          ? donationData.notes
+          : donationData.Notes,
+      Pledge: null, // Set default value for Pledge if needed
     };
-    const updatedDonation = await updateDonation(id, donationWithId);
+
+    const updatedDonation = await updateDonation(id, {
+      ...dbDonationData,
+      id,
+    } as DonationType);
 
     if (!updatedDonation) {
       return NextResponse.json(

@@ -1,24 +1,24 @@
-"use client"
+'use client';
 
-import type React from "react"
+import type React from 'react';
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card } from "@/components/ui/card"
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
 
 interface LoginPageProps {
-  onLogin: (username: string, password: string) => void
+  onLogin: (username: string, password: string) => void;
 }
 
 export function LoginPage({ onLogin }: LoginPageProps) {
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onLogin(username, password)
-  }
+    e.preventDefault();
+    onLogin(username, password);
+  };
 
   return (
     /* Updated to light mode background and styling */
@@ -26,13 +26,17 @@ export function LoginPage({ onLogin }: LoginPageProps) {
       <Card className="w-full max-w-md bg-white border-gray-200">
         <div className="p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Clay Music</h1>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              Clay Music
+            </h1>
             <p className="text-gray-600">Donations Management</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Username</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Username
+              </label>
               <Input
                 type="text"
                 value={username}
@@ -43,7 +47,9 @@ export function LoginPage({ onLogin }: LoginPageProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
               <Input
                 type="password"
                 value={password}
@@ -53,17 +59,20 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               />
             </div>
 
-            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2">
+            <Button
+              type="submit"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2"
+            >
               Sign In
             </Button>
           </form>
 
           <p className="text-center text-gray-600 text-sm mt-6">
-            Demo: username: <span className="text-gray-900">admin</span>, password:{" "}
-            <span className="text-gray-900">password</span>
+            Demo: username: <span className="text-gray-900">admin</span>,
+            password: <span className="text-gray-900">password</span>
           </p>
         </div>
       </Card>
     </div>
-  )
+  );
 }
