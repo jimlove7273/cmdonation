@@ -16,7 +16,7 @@ function friendToDb(friend: Omit<FriendType, 'id'>): any {
     address: friend.address,
     city: friend.city,
     state: friend.state,
-    zipcode: friend.zip, // Map zip to zipcode
+    zipcode: friend.zipcode, // Map zip to zipcode
     dns: friend.dns,
     phone: friend.phone,
     email: friend.email,
@@ -34,7 +34,7 @@ function dbToFriend(dbFriend: any): FriendType {
     address: dbFriend.address,
     city: dbFriend.city,
     state: dbFriend.state,
-    zip: dbFriend.zipcode, // Map zipcode to zip
+    zipcode: dbFriend.zipcode, // Map zipcode to zip
     dns: dbFriend.dns,
     phone: dbFriend.phone,
     email: dbFriend.email,

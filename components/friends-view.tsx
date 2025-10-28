@@ -9,7 +9,14 @@ import { FriendForm } from '@/components/friend-form';
 import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
 import { FriendType } from '@/types/DataTypes';
 
-type SortColumn = 'firstName' | 'lastName' | 'email' | 'phone' | 'city' | null;
+type SortColumn =
+  | 'id'
+  | 'firstName'
+  | 'lastName'
+  | 'email'
+  | 'phone'
+  | 'city'
+  | null;
 type SortDirection = 'asc' | 'desc';
 
 export function FriendsView() {
@@ -30,7 +37,10 @@ export function FriendsView() {
         throw new Error('Failed to fetch friends');
       }
       const data: FriendType[] = await response.json();
-      setFriends(data);
+      const sortedData = data.sort((a, b) => {
+        return parseInt(a.id) - parseInt(b.id);
+      });
+      setFriends(sortedData);
     } catch (error) {
       console.error('Error refreshing friends:', error);
     }
@@ -163,7 +173,7 @@ export function FriendsView() {
 
   const SortIndicator = ({ column }: { column: SortColumn }) => {
     if (sortColumn !== column)
-      return <span className="text-gray-400 ml-1">⇅</span>;
+      return <span className="text-gray-400 ml-1">↕</span>;
     return sortDirection === 'asc' ? (
       <ChevronUp className="w-4 h-4 inline ml-1" />
     ) : (
@@ -227,8 +237,11 @@ export function FriendsView() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-gray-200 bg-gray-50">
-                    <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                      ID
+                    <th
+                      className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                      onClick={() => handleSort('id')}
+                    >
+                      ID <SortIndicator column="id" />
                     </th>
                     <th
                       className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
