@@ -37,6 +37,77 @@ interface DonationFormProps {
   onCancel: () => void;
 }
 
+// Function to convert number to words (for check amount in words)
+function numberToWords(num: number): string {
+  const ones = [
+    '',
+    'One',
+    'Two',
+    'Three',
+    'Four',
+    'Five',
+    'Six',
+    'Seven',
+    'Eight',
+    'Nine',
+    'Ten',
+    'Eleven',
+    'Twelve',
+    'Thirteen',
+    'Fourteen',
+    'Fifteen',
+    'Sixteen',
+    'Seventeen',
+    'Eighteen',
+    'Nineteen',
+  ];
+  const tens = [
+    '',
+    '',
+    'Twenty',
+    'Thirty',
+    'Forty',
+    'Fifty',
+    'Sixty',
+    'Seventy',
+    'Eighty',
+    'Ninety',
+  ];
+
+  if (num === 0) return 'Zero';
+
+  function convertHundreds(n: number): string {
+    let str = '';
+    if (n > 99) {
+      str += ones[Math.floor(n / 100)] + ' Hundred ';
+      n %= 100;
+    }
+    if (n > 19) {
+      str += tens[Math.floor(n / 10)] + ' ';
+      n %= 10;
+    }
+    if (n > 0) {
+      str += ones[n] + ' ';
+    }
+    return str;
+  }
+
+  const dollars = Math.floor(num);
+  const cents = Math.round((num - dollars) * 100);
+
+  let result = '';
+  if (dollars > 0) {
+    result += convertHundreds(dollars).trim();
+  }
+
+  if (cents > 0) {
+    if (result) result += ' and ';
+    result += cents + '/100';
+  }
+
+  return result.trim();
+}
+
 export function DonationForm({
   donation,
   friends,
@@ -73,49 +144,66 @@ export function DonationForm({
   // Find the selected friend to display the name properly
   const selectedFriend = friends.find((f) => f.id === formData.friendId);
 
+  // Get the full name of the selected friend
+  const payeeName = selectedFriend
+    ? `${selectedFriend.firstName} ${selectedFriend.lastName}`
+    : '';
+
   return (
-    <Card className="bg-white border-gray-200 p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-4">
-        {donation ? 'Edit Donation' : 'Add New Donation'}
-      </h3>
-      {donation && (
-        <div className="mb-4 p-3 bg-gray-50 rounded-md">
-          <label className="block text-sm font-medium text-gray-700">
-            Donation ID
-          </label>
-          <p className="mt-1 text-sm text-gray-900 font-mono">{donation.id}</p>
-        </div>
-      )}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+    <Card className="bg-white border-gray-300 p-8 max-w-3xl mx-auto">
+      <div className="border-2 border-gray-800 p-6 bg-white">
+        {/* Check header with logo/name */}
+        <div className="flex justify-between items-start mb-8">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Date
-            </label>
+            <h2 className="text-2xl font-bold text-gray-900">CLAY MUSIC</h2>
+            <p className="text-sm text-gray-600">Donation Management</p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-gray-600">Check No.</p>
+            <Input
+              type="text"
+              value={formData.checkNumber}
+              onChange={(e) =>
+                setFormData({ ...formData, checkNumber: e.target.value })
+              }
+              placeholder="0000"
+              className="bg-white border-gray-300 text-gray-900 w-24 text-right"
+            />
+          </div>
+        </div>
+
+        {/* Date */}
+        <div className="flex justify-end mb-6">
+          <div className="flex items-center">
+            <span className="text-sm text-gray-600 mr-2">Date:</span>
             <Input
               type="date"
               value={formData.date}
               onChange={(e) =>
                 setFormData({ ...formData, date: e.target.value })
               }
-              className="bg-white border-gray-300 text-gray-900"
+              className="bg-white border-gray-300 text-gray-900 w-40"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Friend
-            </label>
+        </div>
+
+        {/* Donation Received From and Amount in one line */}
+        <div className="grid grid-cols-3 gap-4 mb-6">
+          <div className="col-span-2">
+            <div className="flex items-center mb-2">
+              <span className="text-sm text-gray-600 mr-2">
+                Donation Received From:
+              </span>
+            </div>
             <Select
               value={formData.friendId}
               onValueChange={(value) =>
                 setFormData({ ...formData, friendId: value })
               }
             >
-              <SelectTrigger className="bg-white border-gray-300 text-gray-900">
+              <SelectTrigger className="bg-white border-b border-gray-300 text-gray-900 text-lg w-full rounded-none border-t-0 border-l-0 border-r-0 focus:ring-0 focus:ring-offset-0 px-0 py-1 h-auto">
                 <SelectValue placeholder="Select a friend">
-                  {selectedFriend
-                    ? `${selectedFriend.firstName} ${selectedFriend.lastName}`
-                    : 'Select a friend'}
+                  {payeeName || 'Select a friend'}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent className="bg-white border-gray-300 max-h-60">
@@ -137,65 +225,62 @@ export function DonationForm({
               </SelectContent>
             </Select>
           </div>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Donation Type
-            </label>
-            <Select
-              value={formData.donationType}
-              onValueChange={(value: any) =>
-                setFormData({ ...formData, donationType: value })
-              }
-            >
-              <SelectTrigger className="bg-white border-gray-300 text-gray-900">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-white border-gray-300">
-                <SelectItem value="Bought CD">Bought CD</SelectItem>
-                <SelectItem value="Love Offering">Love Offering</SelectItem>
-                <SelectItem value="Other">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Check Number
-            </label>
+            <div className="flex items-center mb-2">
+              <span className="text-sm text-gray-600 mr-2">$</span>
+            </div>
             <Input
-              type="text"
-              value={formData.checkNumber}
+              type="number"
+              step="0.01"
+              value={formData.amount || ''}
               onChange={(e) =>
-                setFormData({ ...formData, checkNumber: e.target.value })
+                setFormData({
+                  ...formData,
+                  amount: Number.parseFloat(e.target.value) || 0,
+                })
               }
-              placeholder="Enter Check Number"
-              className="bg-white border-gray-300 text-gray-900 placeholder-gray-500"
+              placeholder="0.00"
+              className="bg-white border-b border-gray-300 text-gray-900 text-lg w-full rounded-none border-t-0 border-l-0 border-r-0 focus:ring-0 focus:ring-offset-0 px-0 py-1 h-auto"
             />
           </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Amount
-          </label>
-          <Input
-            type="number"
-            step="0.01"
-            value={formData.amount}
-            onChange={(e) =>
-              setFormData({
-                ...formData,
-                amount: Number.parseFloat(e.target.value),
-              })
-            }
-            placeholder="0.00"
-            className="bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-          />
+        {/* Amount in words on its own line */}
+        <div className="mb-6">
+          <div className="flex items-center mb-2">
+            <span className="text-sm text-gray-600">Amount in words:</span>
+          </div>
+          <div className="border-b border-gray-300 py-1 min-h-[40px]">
+            <p className="text-gray-900">
+              {numberToWords(formData.amount)} *****
+            </p>
+          </div>
         </div>
 
-        <div>
+        {/* Memo */}
+        <div className="mb-8">
+          <div className="flex items-center mb-2">
+            <span className="text-sm text-gray-600 mr-2">For:</span>
+          </div>
+          <Select
+            value={formData.donationType}
+            onValueChange={(value: any) =>
+              setFormData({ ...formData, donationType: value })
+            }
+          >
+            <SelectTrigger className="bg-white border-b border-gray-300 text-gray-900 rounded-none border-t-0 border-l-0 border-r-0 focus:ring-0 focus:ring-offset-0 px-0 py-1 h-auto">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-white border-gray-300">
+              <SelectItem value="Bought CD">Bought CD</SelectItem>
+              <SelectItem value="Love Offering">Love Offering</SelectItem>
+              <SelectItem value="Other">Other</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Notes section */}
+        <div className="mb-6">
           <label className="block text-sm font-medium text-gray-700 mb-2">
             Notes
           </label>
@@ -204,11 +289,21 @@ export function DonationForm({
             onChange={(e) =>
               setFormData({ ...formData, notes: e.target.value })
             }
-            placeholder="Enter notes"
-            rows={4}
+            placeholder="Enter additional notes"
+            rows={3}
             className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
+
+        {/* Form actions */}
+        {donation && (
+          <div className="mb-4 p-3 bg-gray-100 border border-gray-200 rounded-md">
+            <label className="block text-sm font-medium text-gray-700">
+              Donation ID
+            </label>
+            <p className="mt-1 text-sm text-gray-900">{donation.id}</p>
+          </div>
+        )}
 
         <div className="flex gap-2 justify-end">
           <Button
@@ -222,11 +317,12 @@ export function DonationForm({
           <Button
             type="submit"
             className="bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={handleSubmit}
           >
             {donation ? 'Update' : 'Add'} Donation
           </Button>
         </div>
-      </form>
+      </div>
     </Card>
   );
 }
