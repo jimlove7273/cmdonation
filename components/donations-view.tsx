@@ -14,8 +14,10 @@ import {
 } from 'lucide-react';
 import { DonationDetailView } from '@/components/donation-detail-view';
 import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
+import DonationReceipts from '@/components/donations-receipts';
 import { DonationType, FriendType } from '@/types/DataTypes';
 import { useRouter } from 'next/navigation';
+import { generateReceiptsHtml, printReceipts } from '@/lib/receipt-utils';
 
 // Define the interface that matches what DonationForm expects
 type Donation = {
@@ -195,56 +197,13 @@ export function DonationsView() {
   };
 
   const handlePrintReceipts = () => {
-    const lastYear = new Date().getFullYear() - 1;
-    const lastYearDonations = donations.filter(
-      (d) => new Date(d.eDate).getFullYear() === lastYear,
-    );
-
-    if (lastYearDonations.length === 0) {
-      alert(`No donations found for ${lastYear}`);
-      return;
-    }
-
-    const printContent = lastYearDonations
-      .map((d) => {
-        const friend = friends.find((f) => f.id === d.Friend.toString());
-        const friendName = friend
-          ? `${friend.firstName || ''} ${friend.lastName || ''}`.trim()
-            ? `${friend.firstName || ''} ${friend.lastName || ''} (${d.Friend})`
-            : `Friend ID: ${d.Friend}`
-          : `Friend ID: ${d.Friend}`;
-        return `
-      <div style="page-break-after: always; padding: 20px; border: 1px solid #ccc; margin-bottom: 20px;">
-        <h2>Donation Receipt</h2>
-        <p><strong>Date:</strong> ${d.eDate}</p>
-        <p><strong>Friend:</strong> ${friendName}</p>
-        <p><strong>Type:</strong> ${d.Type}</p>
-        <p><strong>Check Number:</strong> ${d.Check}</p>
-        <p><strong>Amount:</strong> $${d.Amount.toFixed(2)}</p>
-        <p><strong>Notes:</strong> ${d.Notes || ''}</p>
-      </div>
-    `;
-      })
-      .join('');
-
-    const printWindow = window.open('', '', 'width=800,height=600');
-    if (printWindow) {
-      printWindow.document.write(`
-        <html>
-          <head>
-            <title>Donation Receipts - ${lastYear}</title>
-            <style>
-              body { font-family: Arial, sans-serif; }
-              @media print { body { margin: 0; } }
-            </style>
-          </head>
-          <body>
-            ${printContent}
-          </body>
-        </html>
-      `);
-      printWindow.document.close();
-      printWindow.print();
+    try {
+      // Get last year's donations
+      const htmlContent = generateReceiptsHtml(donations, friends);
+      const lastYear = new Date().getFullYear() - 1;
+      printReceipts(htmlContent, lastYear);
+    } catch (error: any) {
+      alert(error.message || 'Error generating receipts');
     }
   };
 
