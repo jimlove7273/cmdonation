@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import { useAuth } from '@/contexts/AuthContext';
-import { LoginPage } from '@/components/login-page';
-import { FriendForm } from '@/components/friend-form';
-import { SidebarNavigation } from '@/components/sidebar-navigation';
-import PageHeader from '@/components/pageHeader';
-import { useRouter, useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { FriendType } from '@/types/DataTypes';
+import { useAuth } from "@/contexts/AuthContext";
+import { LoginPage } from "@/components/login-page";
+import { FriendForm } from "@/components/friend-form";
+import { SidebarNavigation } from "@/components/sidebar-navigation";
+import PageHeader from "@/components/pageHeader";
+import { useRouter, useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { FriendType } from "@/types/DataTypes";
 
 export default function EditFriendPage() {
   const { isAuthenticated, login, isLoading } = useAuth();
@@ -19,7 +19,7 @@ export default function EditFriendPage() {
   const handleLogin = (username: string, password: string) => {
     const success = login(username, password);
     if (!success) {
-      alert('Invalid credentials');
+      alert("Invalid credentials");
     }
   };
 
@@ -30,14 +30,14 @@ export default function EditFriendPage() {
         try {
           const response = await fetch(`/api/friends/${id}`);
           if (!response.ok) {
-            throw new Error('Failed to fetch friend');
+            throw new Error("Failed to fetch friend");
           }
           const friendData: FriendType = await response.json();
           setFriend(friendData);
         } catch (error) {
-          console.error('Error fetching friend:', error);
-          alert('Failed to load friend data');
-          router.push('/friends');
+          console.error("Error fetching friend:", error);
+          alert("Failed to load friend data");
+          router.push("/friends");
         } finally {
           setLoading(false);
         }
@@ -47,28 +47,28 @@ export default function EditFriendPage() {
     }
   }, [isAuthenticated, id, router]);
 
-  const handleUpdateFriend = async (data: Omit<FriendType, 'id'>) => {
+  const handleUpdateFriend = async (data: Omit<FriendType, "id">) => {
     if (!id) return;
 
     try {
       const response = await fetch(`/api/friends/${id}`, {
-        method: 'PUT',
+        method: "PUT",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(data),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to update friend');
+        throw new Error("Failed to update friend");
       }
 
-      const updatedFriend: FriendType = await response.json();
+      const updatedFriend = await response.json();
       // Redirect to friends list after successful update
-      router.push('/friends');
+      router.push("/friends");
     } catch (error) {
-      console.error('Error updating friend:', error);
-      alert('Failed to update friend');
+      console.error("Error updating friend:", error);
+      alert("Failed to update friend");
     }
   };
 
@@ -86,9 +86,9 @@ export default function EditFriendPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen bg-gray-50 flex flex-col">
       <PageHeader />
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden h-full">
         {/* Sidebar Navigation */}
         <SidebarNavigation />
 
@@ -103,13 +103,13 @@ export default function EditFriendPage() {
               <FriendForm
                 friend={friend}
                 onSubmit={handleUpdateFriend}
-                onCancel={() => router.push('/friends')}
+                onCancel={() => router.push("/friends")}
               />
             ) : (
               <div className="text-center py-8">
                 <p className="text-gray-600">Friend not found</p>
                 <button
-                  onClick={() => router.push('/friends')}
+                  onClick={() => router.push("/friends")}
                   className="mt-4 text-blue-600 hover:underline"
                 >
                   Back to Friends List

@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useAuth } from '@/contexts/AuthContext';
-import { LoginPage } from '@/components/login-page';
-import { FriendsView } from '@/components/friends-view';
-import { SidebarNavigation } from '@/components/sidebar-navigation';
-import PageHeader from '@/components/pageHeader';
+import { useAuth } from "@/contexts/AuthContext";
+import { LoginPage } from "@/components/login-page";
+import { FriendsView } from "@/components/friends-view";
+import { SidebarNavigation } from "@/components/sidebar-navigation";
+import PageHeader from "@/components/pageHeader";
 
 export default function FriendsPage() {
   const { isAuthenticated, login, isLoading } = useAuth();
@@ -12,7 +12,7 @@ export default function FriendsPage() {
   const handleLogin = (username: string, password: string) => {
     const success = login(username, password);
     if (!success) {
-      alert('Invalid credentials');
+      alert("Invalid credentials");
     }
   };
 
@@ -30,9 +30,9 @@ export default function FriendsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen bg-gray-50 flex flex-col">
       <PageHeader />
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden h-full">
         {/* Sidebar Navigation */}
         <SidebarNavigation />
 

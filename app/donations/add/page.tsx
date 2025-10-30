@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useAuth } from '@/contexts/AuthContext';
-import { LoginPage } from '@/components/login-page';
-import { DonationForm } from '@/components/donation-form';
-import { SidebarNavigation } from '@/components/sidebar-navigation';
-import PageHeader from '@/components/pageHeader';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useAuth } from "@/contexts/AuthContext";
+import { LoginPage } from "@/components/login-page";
+import { DonationForm } from "@/components/donation-form";
+import { SidebarNavigation } from "@/components/sidebar-navigation";
+import PageHeader from "@/components/pageHeader";
+import { useRouter } from "next/navigation";
+import { useEffect, useState, useCallback, useMemo } from "react";
 
 export default function AddDonationPage() {
   const { isAuthenticated, login, isLoading } = useAuth();
@@ -18,33 +18,33 @@ export default function AddDonationPage() {
     { id: string; firstName: string; lastName: string }[]
   >([]);
   const [loadingFriends, setLoadingFriends] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleLogin = (username: string, password: string) => {
     const success = login(username, password);
     if (!success) {
-      alert('Invalid credentials');
+      alert("Invalid credentials");
     }
   };
 
   // Fetch all friends
   const fetchAllFriends = useCallback(async () => {
     try {
-      const response = await fetch('/api/friends');
+      const response = await fetch("/api/friends");
       if (!response.ok) {
-        throw new Error('Failed to fetch friends');
+        throw new Error("Failed to fetch friends");
       }
       const friendsData = await response.json();
       const mappedFriends = friendsData.map((f: any) => ({
         id: f.id.toString(), // Ensure ID is a string
-        firstName: f.firstName || '',
-        lastName: f.lastName || '',
+        firstName: f.firstName || "",
+        lastName: f.lastName || "",
       }));
 
       setAllFriends(mappedFriends);
       setFilteredFriends(mappedFriends); // Initially show all friends
     } catch (error) {
-      console.error('Error fetching friends:', error);
+      console.error("Error fetching friends:", error);
     } finally {
       setLoadingFriends(false);
     }
@@ -52,7 +52,7 @@ export default function AddDonationPage() {
 
   // Filter friends based on search term
   useEffect(() => {
-    if (searchTerm.trim() === '') {
+    if (searchTerm.trim() === "") {
       setFilteredFriends(allFriends);
     } else {
       const term = searchTerm.toLowerCase();
@@ -79,19 +79,19 @@ export default function AddDonationPage() {
         id: string;
         date: string;
         friendId: string;
-        donationType: 'Bought CD' | 'Love Offering' | 'Other';
+        donationType: "Bought CD" | "Love Offering" | "Other";
         checkNumber: string;
         amount: number;
         notes: string;
       },
-      'id'
+      "id"
     >,
   ) => {
     try {
-      const response = await fetch('/api/donations', {
-        method: 'POST',
+      const response = await fetch("/api/donations", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           date: data.date,
@@ -104,15 +104,15 @@ export default function AddDonationPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to add donation');
+        throw new Error("Failed to add donation");
       }
 
       const newDonation = await response.json();
       // Redirect to donations list after successful creation
-      router.push('/donations');
+      router.push("/donations");
     } catch (error) {
-      console.error('Error adding donation:', error);
-      alert('Failed to add donation');
+      console.error("Error adding donation:", error);
+      alert("Failed to add donation");
     }
   };
 
@@ -154,9 +154,9 @@ export default function AddDonationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="h-screen bg-gray-50 flex flex-col">
       <PageHeader />
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden h-full">
         {/* Sidebar Navigation */}
         <SidebarNavigation />
 
@@ -172,7 +172,7 @@ export default function AddDonationPage() {
             <DonationForm
               friends={filteredFriends}
               onSubmit={handleAddDonation}
-              onCancel={() => router.push('/donations')}
+              onCancel={() => router.push("/donations")}
             />
           </div>
         </main>
