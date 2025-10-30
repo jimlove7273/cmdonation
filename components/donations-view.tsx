@@ -14,10 +14,14 @@ import {
 } from 'lucide-react';
 import { DonationDetailView } from '@/components/donation-detail-view';
 import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
-import DonationReceipts from '@/components/donations-receipts';
 import { DonationType, FriendType } from '@/types/DataTypes';
 import { useRouter } from 'next/navigation';
-import { generateReceiptsHtml, printReceipts } from '@/lib/receipt-utils';
+import {
+  generateReceiptsHtml,
+  printReceipts,
+  generateLabelsHtml,
+  printLabels,
+} from '@/lib/receipt-utils';
 
 // Define the interface that matches what DonationForm expects
 type Donation = {
@@ -207,6 +211,17 @@ export function DonationsView() {
     }
   };
 
+  const handlePrintLabels = () => {
+    try {
+      // Get last year's donations
+      const htmlContent = generateLabelsHtml(donations, friends);
+      const lastYear = new Date().getFullYear() - 1;
+      printLabels(htmlContent, lastYear);
+    } catch (error: any) {
+      alert(error.message || 'Error generating labels');
+    }
+  };
+
   const SortIndicator = ({ column }: { column: SortColumn }) => {
     if (sortColumn !== column)
       return <span className="text-gray-400 ml-1">↕</span>;
@@ -245,9 +260,16 @@ export function DonationsView() {
                 // Refresh donations
                 refreshDonations();
               }}
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className="bg-cyan-600 hover:bg-cyan-700 text-white"
             >
               Refresh
+            </Button>
+            <Button
+              onClick={handlePrintLabels}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Printer className="w-4 h-4 mr-2" />
+              Print Labels
             </Button>
             <Button
               onClick={handlePrintReceipts}

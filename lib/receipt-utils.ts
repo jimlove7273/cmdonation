@@ -150,6 +150,141 @@ export function generateReceiptsHtml(
 }
 
 /**
+ * Generate HTML content for mailing labels
+ */
+export function generateLabelsHtml(
+  donations: DonationType[],
+  friends: FriendType[],
+): string {
+  const lastYear = new Date().getFullYear() - 1;
+  const lastYearDonations = donations.filter(
+    (d: DonationType) => new Date(d.eDate).getFullYear() === lastYear,
+  );
+
+  if (lastYearDonations.length === 0) {
+    throw new Error(`No donations found for ${lastYear}`);
+  }
+
+  // Unique friends who donated last year
+  const uniqueFriendIds = Array.from(
+    new Set(lastYearDonations.map((d) => d.Friend.toString())),
+  );
+
+  const uniqueFriends = uniqueFriendIds
+    .map((id) => friends.find((f) => f.id.toString() === id))
+    .filter((f): f is FriendType => !!f);
+
+  const sortedFriends = uniqueFriends.sort(
+    (a, b) => parseInt(a.id.toString(), 10) - parseInt(b.id.toString(), 10),
+  );
+
+  // Avery 5160 specifics (3 columns x 10 rows)
+  // Label: 2.625in x 1in
+  // Page size: 8.5in x 11in
+  // Recommended page padding (top, left/right) for Avery 5160: 0.5in top, 0.1875in left/right
+  // Horizontal gap between labels ~0.125in, vertical gap ~0.125in
+  const labelsPerPage = 30;
+  const cols = 3;
+
+  function renderLabel(friend: FriendType | null) {
+    if (!friend) {
+      // empty placeholder keeps layout stable
+      return `<div style="
+        width: 2.625in;
+        height: 1in;
+        box-sizing: border-box;
+        padding: 6px 8px;
+        margin: 0;
+      "></div>`;
+    }
+
+    const street = friend.address || '';
+    const cityLine = friend.city ? `${friend.city},` : '';
+    const stateZip = `${friend.state || ''} ${friend.zipcode || ''}`.trim();
+
+    return `
+      <div style="
+        width: 2.625in;
+        height: 1in;
+        box-sizing: border-box;
+        padding: 6px 8px;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        font-family: Arial, sans-serif;
+        font-size: 11px;
+      ">
+        <div style="font-weight:600; margin-bottom:2px;">#${friend.id}</div>
+        <div style="line-height:1;">${friend.firstName || ''} ${
+      friend.lastName || ''
+    }</div>
+        <div style="line-height:1;">${street}</div>
+        <div style="line-height:1;">${cityLine} ${stateZip}</div>
+      </div>
+    `;
+  }
+
+  // Build pages
+  const pages: string[] = [];
+  for (let i = 0; i < sortedFriends.length; i += labelsPerPage) {
+    const pageFriends = sortedFriends.slice(i, i + labelsPerPage);
+
+    // Fill up to 30 with nulls (placeholders) so layout is stable
+    while (pageFriends.length < labelsPerPage) pageFriends.push(null as any);
+
+    // Build the page container — each page gets its own padding so top margin is consistent
+    let pageHtml = `
+      <div style="
+        width: 8.5in;
+        height: 11in;
+        box-sizing: border-box;
+        padding: 0.5in 0.1875in; /* top/left-right */
+        display: flex;
+        flex-wrap: wrap;
+        align-content: flex-start;
+        gap: 0.125in 0.125in; /* vertical gap horizontal gap */
+        font-family: Arial, sans-serif;
+      ">
+    `;
+
+    // Render 30 labels (3 columns x 10 rows)
+    pageFriends.forEach((friend, idx) => {
+      // We keep exact label widths; gap is handled by container gap
+      pageHtml += renderLabel(friend);
+    });
+
+    pageHtml += `</div>`;
+
+    // add page-break after each page except the last
+    if (i + labelsPerPage < sortedFriends.length) {
+      pageHtml += `<div style="page-break-after: always;"></div>`;
+    }
+
+    pages.push(pageHtml);
+  }
+
+  // If there were no full pages (edgecase), still return an empty page container
+  if (pages.length === 0) {
+    pages.push(`
+      <div style="
+        width: 8.5in;
+        height: 11in;
+        box-sizing: border-box;
+        padding: 0.5in 0.1875in;
+      "></div>
+    `);
+  }
+
+  // Wrap all pages so printing will render them consecutively
+  return `
+    <div>
+      ${pages.join('')}
+    </div>
+  `;
+}
+
+/**
  * Open a print window with the generated receipts
  */
 export function printReceipts(htmlContent: string, year: number) {
@@ -171,6 +306,39 @@ export function printReceipts(htmlContent: string, year: number) {
               @page { margin: 0.3cm; }
             }
             @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap');
+          </style>
+        </head>
+        <body>
+          ${htmlContent}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+  }
+}
+
+/**
+ * Open a print window with the generated labels
+ */
+export function printLabels(htmlContent: string, year: number) {
+  const printWindow = window.open('', '', 'width=1000,height=800');
+  if (printWindow) {
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Mailing Labels - ${year} Donors</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
+            @media print { 
+              body { 
+                margin: 0; 
+                padding: 0;
+                width: 100%;
+                height: 100%;
+              }
+              @page { margin: 0.5cm; }
+            }
           </style>
         </head>
         <body>

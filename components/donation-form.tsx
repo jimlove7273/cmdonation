@@ -167,7 +167,7 @@ export function DonationForm({
                 setFormData({ ...formData, checkNumber: e.target.value })
               }
               placeholder="0000"
-              className="bg-white border-gray-300 text-gray-900 w-24 text-right font-mono"
+              className="bg-white border-gray-300 text-gray-900 w-24 text-right"
             />
           </div>
         </div>

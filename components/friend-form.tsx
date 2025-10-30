@@ -46,7 +46,7 @@ export function FriendForm({ friend, onSubmit, onCancel }: FriendFormProps) {
           <label className="block text-sm font-medium text-gray-700">
             Friend ID
           </label>
-          <p className="mt-1 text-sm text-gray-900 font-mono">{friend.id}</p>
+          <p className="mt-1 text-sm text-gray-900">{friend.id}</p>
         </div>
       )}
       <form onSubmit={handleSubmit} className="space-y-4">
