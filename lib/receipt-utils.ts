@@ -215,12 +215,14 @@ export function generateLabelsHtml(
         font-family: Arial, sans-serif;
         font-size: 11px;
       ">
-        <div style="font-weight:600; margin-bottom:2px;">#${friend.id}</div>
-        <div style="line-height:1;">${friend.firstName || ''} ${
+        <div style="font-size: 10px; font-weight:600; margin-bottom:2px;">#${
+          friend.id
+        }</div>
+        <div style="font-size: 14px;">${friend.firstName || ''} ${
       friend.lastName || ''
     }</div>
-        <div style="line-height:1;">${street}</div>
-        <div style="line-height:1;">${cityLine} ${stateZip}</div>
+        <div style="font-size: 14px;">${street}</div>
+        <div style="font-size: 14px;">${cityLine} ${stateZip}</div>
       </div>
     `;
   }

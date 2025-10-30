@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const inactivityTimer = useRef<NodeJS.Timeout | null>(null);
   const router = useRouter();
-  const INACTIVITY_LIMIT = 10 * 60 * 1000; // 10 minutes in milliseconds
+  const INACTIVITY_LIMIT = 20 * 60 * 1000;
 
   // Reset the inactivity timer
   const resetInactivityTimer = () => {
