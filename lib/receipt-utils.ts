@@ -52,9 +52,11 @@ export function generateReceiptsHtml(
         .map(
           (d: DonationType) => `
           <tr>
-            <td style="padding: 4px 0; font-size: 14px;">${d.eDate}</td>
-            <td style="padding: 4px 0; font-size: 14px;">${d.Check || ''}</td>
-            <td style="padding: 4px 0; font-size: 14px;">$${d.Amount.toFixed(
+            <td style="padding: 3px 0; font-size: 14px;">${d.eDate}</td>
+            <td style="padding: 3px 0; font-size: 14px;">${
+              d.Check === 'paypal' ? 'PayPal' : `CK ${d.Check}`
+            }</td>
+            <td style="padding: 3px 0; font-size: 14px;">$${d.Amount.toFixed(
               2,
             )}</td>
           </tr>
@@ -70,7 +72,7 @@ export function generateReceiptsHtml(
             </div>
             
             <div style="text-align: center; margin-bottom: 15px;">
-              <h2 style="font-size: 16px; margin: 0;">${new Date().getFullYear()} Donation Receipt</h2>
+              <h2 style="font-size: 24px; margin: 0;">${new Date().getFullYear()} Donation Receipt</h2>
             </div>
             
             <div style="margin-bottom: 20px;">
@@ -101,7 +103,7 @@ export function generateReceiptsHtml(
                 <thead>
                   <tr>
                     <th style="text-align: left; border-bottom: 1px solid #000; padding: 4px;">Date</th>
-                    <th style="text-align: left; border-bottom: 1px solid #000; padding: 4px;">Check #</th>
+                    <th style="text-align: left; border-bottom: 1px solid #000; padding: 4px;">Donation Method</th>
                     <th style="text-align: left; border-bottom: 1px solid #000; padding: 4px;">Amount</th>
                   </tr>
                 </thead>
@@ -120,7 +122,7 @@ export function generateReceiptsHtml(
             </div>
           </div>
           
-            <div style="margin: 15px 0;">
+            <div style="margin: 10px 0;">
               <p style="margin: 4px 0; font-size: 14px;">Thank you for your support.<br>
               May God bless you even more abundantly.<br><br></p>
               
@@ -130,12 +132,11 @@ export function generateReceiptsHtml(
                 Amy Sand
               </div>
               
-              <p style="margin: 4px 0;"><strong>Amy Sand</strong><br>
               Clay Music</p>
               <br><br>
             </div>
             
-            <div style="text-align: center; margin-top: 15px;">
+            <div style="text-align: center;">
               <p style="font-size: 10px; margin: 3px 0;">No goods or services were provided in consideration of the donations</p>
               <hr style="width: 50%; margin: 8px auto; border: 0.5px solid #ccc;">
               <p style="font-size: 9px; margin: 3px 0; line-height: 1.2;">
@@ -178,20 +179,20 @@ export function generateLabelsHtml(
     (a, b) => parseInt(a.id.toString(), 10) - parseInt(b.id.toString(), 10),
   );
 
-  // Avery 5160 specifics (3 columns x 10 rows)
-  // Label: 2.625in x 1in
+  // Avery 5162 specifics (2 columns x 7 rows)
+  // Label: 4in x 1.333in
   // Page size: 8.5in x 11in
-  // Recommended page padding (top, left/right) for Avery 5160: 0.5in top, 0.1875in left/right
+  // Recommended page padding (top, left/right) for Avery 5162: 0.5in top, 0.1875in left/right
   // Horizontal gap between labels ~0.125in, vertical gap ~0.125in
-  const labelsPerPage = 30;
-  const cols = 3;
+  const labelsPerPage = 14;
+  const cols = 2;
 
   function renderLabel(friend: FriendType | null) {
     if (!friend) {
       // empty placeholder keeps layout stable
       return `<div style="
-        width: 2.625in;
-        height: 1in;
+        width: 4in;
+        height: 1.333in;
         box-sizing: border-box;
         padding: 6px 8px;
         margin: 0;
@@ -204,8 +205,8 @@ export function generateLabelsHtml(
 
     return `
       <div style="
-        width: 2.625in;
-        height: 1in;
+        width: 4in;
+        height: 1.333in;
         box-sizing: border-box;
         padding: 6px 8px;
         margin: 0;
@@ -232,7 +233,7 @@ export function generateLabelsHtml(
   for (let i = 0; i < sortedFriends.length; i += labelsPerPage) {
     const pageFriends = sortedFriends.slice(i, i + labelsPerPage);
 
-    // Fill up to 30 with nulls (placeholders) so layout is stable
+    // Fill up to 14 with nulls (placeholders) so layout is stable
     while (pageFriends.length < labelsPerPage) pageFriends.push(null as any);
 
     // Build the page container — each page gets its own padding so top margin is consistent
@@ -250,7 +251,7 @@ export function generateLabelsHtml(
       ">
     `;
 
-    // Render 30 labels (3 columns x 10 rows)
+    // Render 14 labels (2 columns x 7 rows)
     pageFriends.forEach((friend, idx) => {
       // We keep exact label widths; gap is handled by container gap
       pageHtml += renderLabel(friend);

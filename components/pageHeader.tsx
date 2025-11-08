@@ -12,7 +12,7 @@ const PageHeader = () => {
           Clay Music Donations
         </h1>
         <div className="flex items-center gap-4">
-          <span className="text-gray-700 font-medium">
+          <span className="text-gray-700 font-medium text-sm">
             Hello,{' '}
             {username
               ? username.charAt(0).toUpperCase() + username.slice(1)
