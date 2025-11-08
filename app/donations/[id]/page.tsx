@@ -1,15 +1,13 @@
-"use client";
+'use client';
 
-import { useAuth } from "@/contexts/AuthContext";
-import { LoginPage } from "@/components/login-page";
-import { DonationForm } from "@/components/donation-form";
-import { SidebarNavigation } from "@/components/sidebar-navigation";
-import PageHeader from "@/components/pageHeader";
-import { useRouter, useParams } from "next/navigation";
-import { useEffect, useState, useCallback } from "react";
+import { withAuth } from '@/components/withAuth';
+import { DonationForm } from '@/components/donation-form';
+import { SidebarNavigation } from '@/components/sidebar-navigation';
+import PageHeader from '@/components/pageHeader';
+import { useRouter, useParams } from 'next/navigation';
+import { useEffect, useState, useCallback } from 'react';
 
-export default function EditDonationPage() {
-  const { isAuthenticated, login, isLoading } = useAuth();
+function EditDonationPage() {
   const router = useRouter();
   const { id } = useParams();
   const [donation, setDonation] = useState<any | null>(null);
@@ -21,33 +19,26 @@ export default function EditDonationPage() {
   >([]);
   const [loading, setLoading] = useState(true);
   const [loadingFriends, setLoadingFriends] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const handleLogin = (username: string, password: string) => {
-    const success = login(username, password);
-    if (!success) {
-      alert("Invalid credentials");
-    }
-  };
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Fetch all friends
   const fetchAllFriends = useCallback(async () => {
     try {
-      const response = await fetch("/api/friends");
+      const response = await fetch('/api/friends');
       if (!response.ok) {
-        throw new Error("Failed to fetch friends");
+        throw new Error('Failed to fetch friends');
       }
       const friendsData = await response.json();
       const mappedFriends = friendsData.map((f: any) => ({
         id: f.id.toString(), // Ensure ID is a string
-        firstName: f.firstName || "",
-        lastName: f.lastName || "",
+        firstName: f.firstName || '',
+        lastName: f.lastName || '',
       }));
 
       setAllFriends(mappedFriends);
       setFilteredFriends(mappedFriends); // Initially show all friends
     } catch (error) {
-      console.error("Error fetching friends:", error);
+      console.error('Error fetching friends:', error);
     } finally {
       setLoadingFriends(false);
     }
@@ -55,7 +46,7 @@ export default function EditDonationPage() {
 
   // Filter friends based on search term
   useEffect(() => {
-    if (searchTerm.trim() === "") {
+    if (searchTerm.trim() === '') {
       setFilteredFriends(allFriends);
     } else {
       const term = searchTerm.toLowerCase();
@@ -70,13 +61,13 @@ export default function EditDonationPage() {
 
   // Fetch donation and friends data when component mounts
   useEffect(() => {
-    if (isAuthenticated && id) {
+    if (id) {
       const fetchData = async () => {
         try {
           // Fetch donation data
           const donationResponse = await fetch(`/api/donations/${id}`);
           if (!donationResponse.ok) {
-            throw new Error("Failed to fetch donation");
+            throw new Error('Failed to fetch donation');
           }
           const donationData = await donationResponse.json();
 
@@ -88,7 +79,7 @@ export default function EditDonationPage() {
             donationType: donationData.Type,
             checkNumber: donationData.Check,
             amount: donationData.Amount,
-            notes: donationData.Notes || "",
+            notes: donationData.Notes || '',
           };
 
           setDonation(transformedDonation);
@@ -96,9 +87,9 @@ export default function EditDonationPage() {
           // Fetch friends data
           await fetchAllFriends();
         } catch (error) {
-          console.error("Error fetching data:", error);
-          alert("Failed to load data");
-          router.push("/donations");
+          console.error('Error fetching data:', error);
+          alert('Failed to load data');
+          router.push('/donations');
         } finally {
           setLoading(false);
         }
@@ -106,7 +97,7 @@ export default function EditDonationPage() {
 
       fetchData();
     }
-  }, [isAuthenticated, id, router, fetchAllFriends]);
+  }, [id, router, fetchAllFriends]);
 
   const handleUpdateDonation = async (
     data: Omit<
@@ -114,21 +105,21 @@ export default function EditDonationPage() {
         id: string;
         date: string;
         friendId: string;
-        donationType: "Bought CD" | "Love Offering" | "Other";
+        donationType: 'Bought CD' | 'Love Offering' | 'Other';
         checkNumber: string;
         amount: number;
         notes: string;
       },
-      "id"
+      'id'
     >,
   ) => {
     if (!id) return;
 
     try {
       const response = await fetch(`/api/donations/${id}`, {
-        method: "PUT",
+        method: 'PUT',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           date: data.date,
@@ -141,28 +132,24 @@ export default function EditDonationPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to update donation");
+        throw new Error('Failed to update donation');
       }
 
       // Redirect to donations list after successful update
-      router.push("/donations");
+      router.push('/donations');
     } catch (error) {
-      console.error("Error updating donation:", error);
-      alert("Failed to update donation");
+      console.error('Error updating donation:', error);
+      alert('Failed to update donation');
     }
   };
 
-  // Show loading state while checking authentication
-  if (isLoading || loading) {
+  // Show loading state while fetching data
+  if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-gray-600">Loading...</div>
       </div>
     );
-  }
-
-  if (!isAuthenticated) {
-    return <LoginPage onLogin={handleLogin} />;
   }
 
   // Show loading indicator for friends
@@ -210,13 +197,13 @@ export default function EditDonationPage() {
                 donation={donation}
                 friends={filteredFriends}
                 onSubmit={handleUpdateDonation}
-                onCancel={() => router.push("/donations")}
+                onCancel={() => router.push('/donations')}
               />
             ) : (
               <div className="text-center py-8">
                 <p className="text-gray-600">Donation not found</p>
                 <button
-                  onClick={() => router.push("/donations")}
+                  onClick={() => router.push('/donations')}
                   className="mt-4 text-blue-600 hover:underline"
                 >
                   Back to Donations List
@@ -229,3 +216,5 @@ export default function EditDonationPage() {
     </div>
   );
 }
+
+export default withAuth(EditDonationPage);

@@ -1,34 +1,11 @@
-"use client";
+'use client';
 
-import { useAuth } from "@/contexts/AuthContext";
-import { LoginPage } from "@/components/login-page";
-import { FriendsView } from "@/components/friends-view";
-import { SidebarNavigation } from "@/components/sidebar-navigation";
-import PageHeader from "@/components/pageHeader";
+import { withAuth } from '@/components/withAuth';
+import { FriendsView } from '@/components/friends-view';
+import { SidebarNavigation } from '@/components/sidebar-navigation';
+import PageHeader from '@/components/pageHeader';
 
-export default function FriendsPage() {
-  const { isAuthenticated, login, isLoading } = useAuth();
-
-  const handleLogin = (username: string, password: string) => {
-    const success = login(username, password);
-    if (!success) {
-      alert("Invalid credentials");
-    }
-  };
-
-  // Show loading state while checking authentication
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <LoginPage onLogin={handleLogin} />;
-  }
-
+function FriendsPage() {
   return (
     <div className="h-screen bg-gray-50 flex flex-col">
       <PageHeader />
@@ -44,3 +21,5 @@ export default function FriendsPage() {
     </div>
   );
 }
+
+export default withAuth(FriendsPage);

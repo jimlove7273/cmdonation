@@ -59,12 +59,15 @@ export function FriendsView() {
 
   const filteredFriends = friends.filter(
     (f) =>
+      (f.id &&
+        f.id.toString().toLowerCase().includes(searchTerm.toLowerCase())) ||
       (f.firstName &&
         f.firstName.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (f.lastName &&
         f.lastName.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (f.email && f.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (f.phone && f.phone.includes(searchTerm)),
+      (f.phone && f.phone.includes(searchTerm)) ||
+      (f.city && f.city.toLowerCase().includes(searchTerm.toLowerCase())),
   );
 
   const sortedFriends = [...filteredFriends].sort((a, b) => {
@@ -166,7 +169,7 @@ export function FriendsView() {
 
       {/* Search */}
       <Input
-        placeholder="Search by name, email, or phone..."
+        placeholder="Search by ID, name, email, phone, or city..."
         value={searchTerm}
         onChange={(e) => handleSearch(e.target.value)}
         className="bg-white border-gray-300 text-gray-900 placeholder-gray-500"

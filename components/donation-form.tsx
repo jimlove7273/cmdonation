@@ -37,77 +37,6 @@ interface DonationFormProps {
   onCancel: () => void;
 }
 
-// Function to convert number to words (for check amount in words)
-function numberToWords(num: number): string {
-  const ones = [
-    '',
-    'One',
-    'Two',
-    'Three',
-    'Four',
-    'Five',
-    'Six',
-    'Seven',
-    'Eight',
-    'Nine',
-    'Ten',
-    'Eleven',
-    'Twelve',
-    'Thirteen',
-    'Fourteen',
-    'Fifteen',
-    'Sixteen',
-    'Seventeen',
-    'Eighteen',
-    'Nineteen',
-  ];
-  const tens = [
-    '',
-    '',
-    'Twenty',
-    'Thirty',
-    'Forty',
-    'Fifty',
-    'Sixty',
-    'Seventy',
-    'Eighty',
-    'Ninety',
-  ];
-
-  if (num === 0) return 'Zero';
-
-  function convertHundreds(n: number): string {
-    let str = '';
-    if (n > 99) {
-      str += ones[Math.floor(n / 100)] + ' Hundred ';
-      n %= 100;
-    }
-    if (n > 19) {
-      str += tens[Math.floor(n / 10)] + ' ';
-      n %= 10;
-    }
-    if (n > 0) {
-      str += ones[n] + ' ';
-    }
-    return str;
-  }
-
-  const dollars = Math.floor(num);
-  const cents = Math.round((num - dollars) * 100);
-
-  let result = '';
-  if (dollars > 0) {
-    result += convertHundreds(dollars).trim();
-  }
-
-  if (cents > 0) {
-    if (result) result += ' and ';
-    result += cents + '/100';
-  }
-
-  return result.trim();
-}
-
 export function DonationForm({
   donation,
   friends,
@@ -242,18 +171,6 @@ export function DonationForm({
               placeholder="0.00"
               className="bg-white border-b border-gray-300 text-gray-900 text-lg w-full rounded-none border-t-0 border-l-0 border-r-0 focus:ring-0 focus:ring-offset-0 px-0 py-1 h-auto"
             />
-          </div>
-        </div>
-
-        {/* Amount in words on its own line */}
-        <div className="mb-6">
-          <div className="flex items-center mb-2">
-            <span className="text-sm text-gray-600">Amount in words:</span>
-          </div>
-          <div className="border-b border-gray-300 py-1 min-h-[40px]">
-            <p className="text-gray-900">
-              {numberToWords(formData.amount)} *****
-            </p>
           </div>
         </div>
 

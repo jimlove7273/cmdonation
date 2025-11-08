@@ -1,15 +1,13 @@
-"use client";
+'use client';
 
-import { useAuth } from "@/contexts/AuthContext";
-import { LoginPage } from "@/components/login-page";
-import { DonationForm } from "@/components/donation-form";
-import { SidebarNavigation } from "@/components/sidebar-navigation";
-import PageHeader from "@/components/pageHeader";
-import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { withAuth } from '@/components/withAuth';
+import { DonationForm } from '@/components/donation-form';
+import { SidebarNavigation } from '@/components/sidebar-navigation';
+import PageHeader from '@/components/pageHeader';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 
-export default function AddDonationPage() {
-  const { isAuthenticated, login, isLoading } = useAuth();
+function AddDonationPage() {
   const router = useRouter();
   const [allFriends, setAllFriends] = useState<
     { id: string; firstName: string; lastName: string }[]
@@ -18,33 +16,26 @@ export default function AddDonationPage() {
     { id: string; firstName: string; lastName: string }[]
   >([]);
   const [loadingFriends, setLoadingFriends] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-
-  const handleLogin = (username: string, password: string) => {
-    const success = login(username, password);
-    if (!success) {
-      alert("Invalid credentials");
-    }
-  };
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Fetch all friends
   const fetchAllFriends = useCallback(async () => {
     try {
-      const response = await fetch("/api/friends");
+      const response = await fetch('/api/friends');
       if (!response.ok) {
-        throw new Error("Failed to fetch friends");
+        throw new Error('Failed to fetch friends');
       }
       const friendsData = await response.json();
       const mappedFriends = friendsData.map((f: any) => ({
         id: f.id.toString(), // Ensure ID is a string
-        firstName: f.firstName || "",
-        lastName: f.lastName || "",
+        firstName: f.firstName || '',
+        lastName: f.lastName || '',
       }));
 
       setAllFriends(mappedFriends);
       setFilteredFriends(mappedFriends); // Initially show all friends
     } catch (error) {
-      console.error("Error fetching friends:", error);
+      console.error('Error fetching friends:', error);
     } finally {
       setLoadingFriends(false);
     }
@@ -52,7 +43,7 @@ export default function AddDonationPage() {
 
   // Filter friends based on search term
   useEffect(() => {
-    if (searchTerm.trim() === "") {
+    if (searchTerm.trim() === '') {
       setFilteredFriends(allFriends);
     } else {
       const term = searchTerm.toLowerCase();
@@ -68,10 +59,8 @@ export default function AddDonationPage() {
 
   // Fetch friends on component mount
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchAllFriends();
-    }
-  }, [isAuthenticated, fetchAllFriends]);
+    fetchAllFriends();
+  }, [fetchAllFriends]);
 
   const handleAddDonation = async (
     data: Omit<
@@ -79,19 +68,19 @@ export default function AddDonationPage() {
         id: string;
         date: string;
         friendId: string;
-        donationType: "Bought CD" | "Love Offering" | "Other";
+        donationType: 'Bought CD' | 'Love Offering' | 'Other';
         checkNumber: string;
         amount: number;
         notes: string;
       },
-      "id"
+      'id'
     >,
   ) => {
     try {
-      const response = await fetch("/api/donations", {
-        method: "POST",
+      const response = await fetch('/api/donations', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           date: data.date,
@@ -104,30 +93,17 @@ export default function AddDonationPage() {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to add donation");
+        throw new Error('Failed to add donation');
       }
 
       const newDonation = await response.json();
       // Redirect to donations list after successful creation
-      router.push("/donations");
+      router.push('/donations');
     } catch (error) {
-      console.error("Error adding donation:", error);
-      alert("Failed to add donation");
+      console.error('Error adding donation:', error);
+      alert('Failed to add donation');
     }
   };
-
-  // Show loading state while checking authentication
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-gray-600">Loading...</div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <LoginPage onLogin={handleLogin} />;
-  }
 
   // Show loading indicator for friends
   if (loadingFriends) {
@@ -172,7 +148,7 @@ export default function AddDonationPage() {
             <DonationForm
               friends={filteredFriends}
               onSubmit={handleAddDonation}
-              onCancel={() => router.push("/donations")}
+              onCancel={() => router.push('/donations')}
             />
           </div>
         </main>
@@ -180,3 +156,5 @@ export default function AddDonationPage() {
     </div>
   );
 }
+
+export default withAuth(AddDonationPage);
