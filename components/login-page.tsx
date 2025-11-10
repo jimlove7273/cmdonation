@@ -66,11 +66,6 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               Sign In
             </Button>
           </form>
-
-          <p className="text-center text-gray-600 text-sm mt-6">
-            Demo: username: <span className="text-gray-900">admin</span>,
-            password: <span className="text-gray-900">password</span>
-          </p>
         </div>
       </Card>
     </div>
