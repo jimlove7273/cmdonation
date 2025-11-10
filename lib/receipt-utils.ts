@@ -219,14 +219,16 @@ export function generateLabelsHtml(
         font-family: Arial, sans-serif;
         font-size: 11px;
       ">
-        <div style="font-size: 10px; font-weight:600; margin-bottom:2px;">#${
-          friend.id
-        }</div>
-        <div style="font-size: 14px;">${friend.firstName || ''} ${
-      friend.lastName || ''
-    }</div>
-        <div style="font-size: 14px;">${street}</div>
-        <div style="font-size: 14px;">${cityLine} ${stateZip}</div>
+        <div style="margin-left: 1in;">
+          <div style="font-size: 10px; font-weight:600; margin-bottom:2px;">#${
+            friend.id
+          }</div>
+          <div style="font-size: 14px;">${friend.firstName || ''} ${
+        friend.lastName || ''
+      }</div>
+          <div style="font-size: 14px;">${street}</div>
+          <div style="font-size: 14px;">${cityLine} ${stateZip}</div>
+        </div>
       </div>
     `;
   }
@@ -255,9 +257,9 @@ export function generateLabelsHtml(
       const row = Math.floor(idx / 2);
       const col = idx % 2;
 
-      // Calculate exact positions
+      // Calculate exact positions with adjusted vertical gaps - moved down to align with actual labels
       const left = 0.1875 + col * (4 + 0.125); // left margin + column * (label width + gap)
-      const top = 0.5 + row * (1.333 + 0.125); // top margin + row * (label height + gap)
+      const top = 1.0 + row * (1.333 + 0.205); // increased top margin + row * (label height + adjusted gap)
 
       pageHtml += renderLabelWithPosition(friend, left, top);
     });
