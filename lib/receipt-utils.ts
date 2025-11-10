@@ -257,9 +257,9 @@ export function generateLabelsHtml(
       const row = Math.floor(idx / 2);
       const col = idx % 2;
 
-      // Calculate exact positions with adjusted vertical gaps - moved down to align with actual labels
+      // Calculate exact positions with fine-tuned vertical gaps - moved further up to align with actual labels
       const left = 0.1875 + col * (4 + 0.125); // left margin + column * (label width + gap)
-      const top = 1.0 + row * (1.333 + 0.205); // increased top margin + row * (label height + adjusted gap)
+      const top = 0.625 + row * (1.333 + 0.0175); // further reduced top margin + row * (label height + fine gap)
 
       pageHtml += renderLabelWithPosition(friend, left, top);
     });

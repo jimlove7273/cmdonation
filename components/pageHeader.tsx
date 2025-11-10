@@ -1,7 +1,7 @@
-import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
+import React from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
 
 const PageHeader = () => {
   const { logout, username } = useAuth();
@@ -13,10 +13,7 @@ const PageHeader = () => {
         </h1>
         <div className="flex items-center gap-4">
           <span className="text-gray-700 font-medium text-sm">
-            Hello,{' '}
-            {username
-              ? username.charAt(0).toUpperCase() + username.slice(1)
-              : 'Admin'}
+            Hello, {username === "cmdonation" ? "Admin" : ""}
           </span>
           <Button
             onClick={logout}
