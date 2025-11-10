@@ -187,12 +187,16 @@ export function generateLabelsHtml(
   const labelsPerPage = 14;
   const cols = 2;
 
-  function renderLabel(friend: FriendType | null) {
+  function renderLabelWithPosition(friend: FriendType | null, leftInches: number, topInches: number) {
     if (!friend) {
-      // empty placeholder keeps layout stable
+      // empty placeholder - still need to render for spacing consistency
       return `<div style="
+        position: absolute;
+        left: ${leftInches}in;
+        top: ${topInches}in;
+        width: 4in;
+        height: 1.333in;
         box-sizing: border-box;
-        padding: 6px 8px;
       "></div>`;
     }
 
@@ -202,6 +206,11 @@ export function generateLabelsHtml(
 
     return `
       <div style="
+        position: absolute;
+        left: ${leftInches}in;
+        top: ${topInches}in;
+        width: 4in;
+        height: 1.333in;
         box-sizing: border-box;
         padding: 6px 8px;
         display: flex;
@@ -230,26 +239,27 @@ export function generateLabelsHtml(
     // Fill up to 14 with nulls (placeholders) so layout is stable
     while (pageFriends.length < labelsPerPage) pageFriends.push(null as any);
 
-    // Build the page container using CSS Grid for precise positioning
+    // Build the page container using absolute positioning for precise control
     let pageHtml = `
       <div style="
         width: 8.5in;
         height: 11in;
+        position: relative;
         box-sizing: border-box;
-        padding: 0.5in 0.1875in; /* top/left-right */
-        display: grid;
-        grid-template-columns: 4in 4in;
-        grid-template-rows: repeat(7, 1.333in);
-        column-gap: 0.125in;
-        row-gap: 0.125in;
         font-family: Arial, sans-serif;
       ">
     `;
 
-    // Render 14 labels (2 columns x 7 rows)
+    // Render 14 labels (2 columns x 7 rows) with absolute positioning
     pageFriends.forEach((friend, idx) => {
-      // Grid will automatically position each label in the correct cell
-      pageHtml += renderLabel(friend);
+      const row = Math.floor(idx / 2);
+      const col = idx % 2;
+
+      // Calculate exact positions
+      const left = 0.1875 + col * (4 + 0.125); // left margin + column * (label width + gap)
+      const top = 0.5 + row * (1.333 + 0.125); // top margin + row * (label height + gap)
+
+      pageHtml += renderLabelWithPosition(friend, left, top);
     });
 
     pageHtml += `</div>`;
@@ -328,14 +338,17 @@ export function printLabels(htmlContent: string, year: number) {
           <title>Mailing Labels - ${year} Donors</title>
           <style>
             body { font-family: Arial, sans-serif; margin: 0; padding: 0; }
-            @media print { 
-              body { 
-                margin: 0; 
+            @media print {
+              body {
+                margin: 0;
                 padding: 0;
                 width: 100%;
                 height: 100%;
               }
-              @page { margin: 0.5cm; }
+              @page {
+                margin: 0;
+                size: 8.5in 11in;
+              }
             }
           </style>
         </head>
