@@ -191,11 +191,8 @@ export function generateLabelsHtml(
     if (!friend) {
       // empty placeholder keeps layout stable
       return `<div style="
-        width: 4in;
-        height: 1.333in;
         box-sizing: border-box;
         padding: 6px 8px;
-        margin: 0;
       "></div>`;
     }
 
@@ -205,11 +202,8 @@ export function generateLabelsHtml(
 
     return `
       <div style="
-        width: 4in;
-        height: 1.333in;
         box-sizing: border-box;
         padding: 6px 8px;
-        margin: 0;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -236,24 +230,25 @@ export function generateLabelsHtml(
     // Fill up to 14 with nulls (placeholders) so layout is stable
     while (pageFriends.length < labelsPerPage) pageFriends.push(null as any);
 
-    // Build the page container — each page gets its own padding so top margin is consistent
+    // Build the page container using CSS Grid for precise positioning
     let pageHtml = `
       <div style="
         width: 8.5in;
         height: 11in;
         box-sizing: border-box;
         padding: 0.5in 0.1875in; /* top/left-right */
-        display: flex;
-        flex-wrap: wrap;
-        align-content: flex-start;
-        gap: 0.125in 0.125in; /* vertical gap horizontal gap */
+        display: grid;
+        grid-template-columns: 4in 4in;
+        grid-template-rows: repeat(7, 1.333in);
+        column-gap: 0.125in;
+        row-gap: 0.125in;
         font-family: Arial, sans-serif;
       ">
     `;
 
     // Render 14 labels (2 columns x 7 rows)
     pageFriends.forEach((friend, idx) => {
-      // We keep exact label widths; gap is handled by container gap
+      // Grid will automatically position each label in the correct cell
       pageHtml += renderLabel(friend);
     });
 
