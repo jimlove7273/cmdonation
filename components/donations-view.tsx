@@ -70,7 +70,7 @@ const transformDonationForSupabase = (
   };
 };
 
-type SortColumn = "eDate" | "Friend" | "Type" | "Check" | "Amount" | null;
+type SortColumn = "id" | "eDate" | "Friend" | "Type" | "Check" | "Amount" | null;
 type SortDirection = "asc" | "desc";
 type YearFilter = "current" | number;
 
@@ -125,9 +125,11 @@ export function DonationsView() {
 
   // Filter donations by search term, year, and date range
   const filteredDonations = donations.filter((d) => {
-    // Search filter - search by Check Number, Amount, Date, and Notes
+    // Search filter - search by ID, Check Number, Amount, Date, and Notes
     const searchLower = searchTerm.toLowerCase();
     const matchesSearch =
+      // ID search
+      (d.id && d.id.toString().toLowerCase().includes(searchLower)) ||
       // Check Number search
       (d.Check && d.Check.toLowerCase().includes(searchLower)) ||
       // Amount search (convert amount to string and search)
@@ -173,6 +175,10 @@ export function DonationsView() {
     } else if (sortColumn === "Amount") {
       aVal = Number.parseFloat(aVal) || 0;
       bVal = Number.parseFloat(bVal) || 0;
+    } else if (sortColumn === "id") {
+      // Sort IDs as strings (case-insensitive)
+      aVal = aVal.toString().toLowerCase();
+      bVal = bVal.toString().toLowerCase();
     } else if (typeof aVal === "string" && typeof bVal === "string") {
       aVal = aVal.toLowerCase();
       bVal = bVal.toLowerCase();
@@ -360,7 +366,7 @@ export function DonationsView() {
         <div className="flex gap-2 mb-6">
           <div className="flex-1">
             <Input
-              placeholder="Search by Check #, Amount, Date, or Notes..."
+              placeholder="Search by ID, Check #, Amount, Date, or Notes..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
               className="bg-white border-gray-300 text-gray-900 placeholder-gray-500"
@@ -395,8 +401,11 @@ export function DonationsView() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                    ID
+                  <th
+                    className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
+                    onClick={() => handleSort("id")}
+                  >
+                    ID <SortIndicator column="id" />
                   </th>
                   <th
                     className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"

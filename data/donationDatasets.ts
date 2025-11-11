@@ -37,7 +37,7 @@ export async function getOneDonation(id: string): Promise<DonationType | null> {
 }
 
 /**
- * Create a new Donation in the database.
+ * Create a new Donation in the database with sequential ID.
  * @param donation - The Donation data to create
  * @returns Promise<DonationType | null> - The created donation object or null on error
  */
@@ -45,21 +45,57 @@ export async function createDonation(
   donation: Omit<DonationType, 'id'>,
 ): Promise<DonationType | null> {
   try {
+    // Get all existing donations to find the highest ID
+    const allDonations = await getAllDonations();
+
+    // Find the highest numeric ID
+    let maxId = 0;
+    for (const existingDonation of allDonations) {
+      const numericId = parseInt(existingDonation.id, 10);
+      if (!isNaN(numericId) && numericId > maxId) {
+        maxId = numericId;
+      }
+    }
+
+    // Generate the next sequential ID
+    const nextId = (maxId + 1).toString();
+
+    // Create the donation with the specific ID
+    const donationWithId = {
+      ...donation,
+      id: nextId,
+    } as DonationType;
+
     const newDonation: DonationType = await createOne(
       DATASETS.DONATIONS,
-      donation as any,
+      donationWithId as any,
     );
     return newDonation;
   } catch (error: any) {
     console.error('Error creating donation:', error);
-    // If there's a duplicate key error, try to handle it
+    // If there's a duplicate key error, try with a different ID
     if (error.code === '23505' || error.code === 'PGRST204') {
-      // This is a duplicate key error or schema cache error
+      // This is a duplicate key error - try again with next available ID
       try {
-        const cleanData = { ...donation };
+        const allDonations = await getAllDonations();
+        let maxId = 0;
+        for (const existingDonation of allDonations) {
+          const numericId = parseInt(existingDonation.id, 10);
+          if (!isNaN(numericId) && numericId > maxId) {
+            maxId = numericId;
+          }
+        }
+
+        // Try the next ID after the current max
+        const nextId = (maxId + 1).toString();
+        const donationWithId = {
+          ...donation,
+          id: nextId,
+        } as DonationType;
+
         const newDonation: DonationType = await createOne(
           DATASETS.DONATIONS,
-          cleanData as any,
+          donationWithId as any,
         );
         return newDonation;
       } catch (retryError) {
