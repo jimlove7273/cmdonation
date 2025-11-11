@@ -125,10 +125,17 @@ export function DonationsView() {
 
   // Filter donations by search term, year, and date range
   const filteredDonations = donations.filter((d) => {
-    // Search filter
+    // Search filter - search by Check Number, Amount, Date, and Notes
+    const searchLower = searchTerm.toLowerCase();
     const matchesSearch =
-      (d.Check && d.Check.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (d.Notes && d.Notes.toLowerCase().includes(searchTerm.toLowerCase()));
+      // Check Number search
+      (d.Check && d.Check.toLowerCase().includes(searchLower)) ||
+      // Amount search (convert amount to string and search)
+      (d.Amount && d.Amount.toString().includes(searchTerm)) ||
+      // Date search (search in formatted date string)
+      (d.eDate && d.eDate.toLowerCase().includes(searchLower)) ||
+      // Notes search
+      (d.Notes && d.Notes.toLowerCase().includes(searchLower));
 
     if (!matchesSearch) return false;
 
@@ -353,7 +360,7 @@ export function DonationsView() {
         <div className="flex gap-2 mb-6">
           <div className="flex-1">
             <Input
-              placeholder="Search by Check Number or Notes..."
+              placeholder="Search by Check #, Amount, Date, or Notes..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
               className="bg-white border-gray-300 text-gray-900 placeholder-gray-500"
