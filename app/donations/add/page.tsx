@@ -1,14 +1,16 @@
-'use client';
+"use client";
 
-import { withAuth } from '@/components/withAuth';
-import { DonationForm } from '@/components/donation-form';
-import { SidebarNavigation } from '@/components/sidebar-navigation';
-import PageHeader from '@/components/pageHeader';
-import { useRouter } from 'next/navigation';
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { withAuth } from "@/components/withAuth";
+import { DonationForm } from "@/components/donation-form";
+import { SidebarNavigation } from "@/components/sidebar-navigation";
+import PageHeader from "@/components/pageHeader";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState, useCallback, useMemo } from "react";
 
 function AddDonationPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const friendIdParam = searchParams.get("friendId");
   const [allFriends, setAllFriends] = useState<
     { id: string; firstName: string; lastName: string }[]
   >([]);
@@ -16,26 +18,27 @@ function AddDonationPage() {
     { id: string; firstName: string; lastName: string }[]
   >([]);
   const [loadingFriends, setLoadingFriends] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [prefilledDonation, setPrefilledDonation] = useState<any>(null);
 
   // Fetch all friends
   const fetchAllFriends = useCallback(async () => {
     try {
-      const response = await fetch('/api/friends');
+      const response = await fetch("/api/friends");
       if (!response.ok) {
-        throw new Error('Failed to fetch friends');
+        throw new Error("Failed to fetch friends");
       }
       const friendsData = await response.json();
       const mappedFriends = friendsData.map((f: any) => ({
         id: f.id.toString(), // Ensure ID is a string
-        firstName: f.firstName || '',
-        lastName: f.lastName || '',
+        firstName: f.firstName || "",
+        lastName: f.lastName || "",
       }));
 
       setAllFriends(mappedFriends);
       setFilteredFriends(mappedFriends); // Initially show all friends
     } catch (error) {
-      console.error('Error fetching friends:', error);
+      console.error("Error fetching friends:", error);
     } finally {
       setLoadingFriends(false);
     }
@@ -43,7 +46,7 @@ function AddDonationPage() {
 
   // Filter friends based on search term
   useEffect(() => {
-    if (searchTerm.trim() === '') {
+    if (searchTerm.trim() === "") {
       setFilteredFriends(allFriends);
     } else {
       const term = searchTerm.toLowerCase();
@@ -57,10 +60,27 @@ function AddDonationPage() {
     }
   }, [searchTerm, allFriends]);
 
-  // Fetch friends on component mount
+  // Fetch friends on component mount and set up prefilled donation if friendId is provided
   useEffect(() => {
     fetchAllFriends();
   }, [fetchAllFriends]);
+
+  // Set up prefilled donation when friendId param changes and friends are loaded
+  useEffect(() => {
+    if (friendIdParam && allFriends.length > 0 && !prefilledDonation) {
+      const friend = allFriends.find((f) => f.id === friendIdParam);
+      if (friend) {
+        setPrefilledDonation({
+          date: new Date().toISOString().split("T")[0],
+          friendId: friendIdParam,
+          donationType: "Love Offering",
+          checkNumber: "",
+          amount: 0,
+          notes: "",
+        });
+      }
+    }
+  }, [friendIdParam, allFriends, prefilledDonation]);
 
   const handleAddDonation = async (
     data: Omit<
@@ -68,19 +88,19 @@ function AddDonationPage() {
         id: string;
         date: string;
         friendId: string;
-        donationType: 'Bought CD' | 'Love Offering' | 'Other';
+        donationType: "Bought CD" | "Love Offering" | "Other";
         checkNumber: string;
         amount: number;
         notes: string;
       },
-      'id'
+      "id"
     >,
   ) => {
     try {
-      const response = await fetch('/api/donations', {
-        method: 'POST',
+      const response = await fetch("/api/donations", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           date: data.date,
@@ -93,15 +113,19 @@ function AddDonationPage() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to add donation');
+        throw new Error("Failed to add donation");
       }
 
       const newDonation = await response.json();
-      // Redirect to donations list after successful creation
-      router.push('/donations');
+      // Redirect based on where user came from
+      if (friendIdParam) {
+        router.push(`/friends/${friendIdParam}/donations`);
+      } else {
+        router.push("/donations");
+      }
     } catch (error) {
-      console.error('Error adding donation:', error);
-      alert('Failed to add donation');
+      console.error("Error adding donation:", error);
+      alert("Failed to add donation");
     }
   };
 
@@ -146,9 +170,16 @@ function AddDonationPage() {
             </div>
 
             <DonationForm
+              donation={prefilledDonation}
               friends={filteredFriends}
               onSubmit={handleAddDonation}
-              onCancel={() => router.push('/donations')}
+              onCancel={() => {
+                if (friendIdParam) {
+                  router.push(`/friends/${friendIdParam}/donations`);
+                } else {
+                  router.push("/donations");
+                }
+              }}
             />
           </div>
         </main>

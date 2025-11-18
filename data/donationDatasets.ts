@@ -1,11 +1,11 @@
-import { DonationType, DATASETS } from '@/types/DataTypes';
+import { DonationType, DATASETS } from "@/types/DataTypes";
 import {
   getAll,
   getOne,
   createOne,
   updateOne,
   deleteOne,
-} from '@/utils/supabase/crud';
+} from "@/utils/supabase/crud";
 
 /**
  * Get all Donations from the database.
@@ -16,7 +16,7 @@ export async function getAllDonations(): Promise<DonationType[]> {
     const allProducts: DonationType[] = await getAll(DATASETS.DONATIONS);
     return allProducts;
   } catch (error) {
-    console.error('Error fetching donations:', error);
+    console.error("Error fetching donations:", error);
     return [];
   }
 }
@@ -31,7 +31,7 @@ export async function getOneDonation(id: string): Promise<DonationType | null> {
     const donation: DonationType = await getOne(DATASETS.DONATIONS, id);
     return donation;
   } catch (error) {
-    console.error('Error fetching donation:', error);
+    console.error("Error fetching donation:", error);
     return null;
   }
 }
@@ -42,7 +42,7 @@ export async function getOneDonation(id: string): Promise<DonationType | null> {
  * @returns Promise<DonationType | null> - The created donation object or null on error
  */
 export async function createDonation(
-  donation: Omit<DonationType, 'id'>,
+  donation: Omit<DonationType, "id">,
 ): Promise<DonationType | null> {
   try {
     // Get all existing donations to find the highest ID
@@ -72,9 +72,9 @@ export async function createDonation(
     );
     return newDonation;
   } catch (error: any) {
-    console.error('Error creating donation:', error);
+    console.error("Error creating donation:", error);
     // If there's a duplicate key error, try with a different ID
-    if (error.code === '23505' || error.code === 'PGRST204') {
+    if (error.code === "23505" || error.code === "PGRST204") {
       // This is a duplicate key error - try again with next available ID
       try {
         const allDonations = await getAllDonations();
@@ -99,7 +99,7 @@ export async function createDonation(
         );
         return newDonation;
       } catch (retryError) {
-        console.error('Retry error creating donation:', retryError);
+        console.error("Retry error creating donation:", retryError);
         return null;
       }
     }
@@ -120,7 +120,7 @@ export async function updateDonation(
   try {
     // Remove the id from the donation object since we don't want to update it
     const { id: _, ...donationData } = donation;
-    const updatedDonationData: Omit<DonationType, 'id'> = await updateOne(
+    const updatedDonationData: Omit<DonationType, "id"> = await updateOne(
       DATASETS.DONATIONS,
       id,
       donationData,
@@ -128,8 +128,39 @@ export async function updateDonation(
     // Add the id back to the returned object
     return { ...updatedDonationData, id };
   } catch (error) {
-    console.error('Error updating donation:', error);
+    console.error("Error updating donation:", error);
     return null;
+  }
+}
+
+/**
+ * Get all donations for a specific friend.
+ * @param friendId - The Friend's ID
+ * @returns Promise<DonationType[]> - Array of donations for the friend
+ */
+export async function getDonationsByFriend(
+  friendId: string,
+): Promise<DonationType[]> {
+  try {
+    const { supabaseServer } = await import("@/utils/supabase/supabaseServer");
+    const supabase = supabaseServer();
+
+    if (!supabase) {
+      throw new Error("Supabase client initialization failed");
+    }
+
+    const { data, error } = await supabase
+      .from(DATASETS.DONATIONS)
+      .select("*")
+      .eq("Friend", parseInt(friendId))
+      .order("eDate", { ascending: false });
+
+    if (error) throw error;
+
+    return (data as DonationType[]) || [];
+  } catch (error) {
+    console.error("Error fetching donations for friend:", error);
+    return [];
   }
 }
 
@@ -143,7 +174,7 @@ export async function deleteDonation(id: string): Promise<void> {
   try {
     await deleteOne(DATASETS.DONATIONS, id);
   } catch (error) {
-    console.error('Error deleting donation:', error);
+    console.error("Error deleting donation:", error);
     throw error;
   }
 }
