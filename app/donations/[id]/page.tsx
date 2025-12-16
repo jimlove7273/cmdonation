@@ -7,6 +7,16 @@ import PageHeader from '@/components/pageHeader';
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect, useState, useCallback } from 'react';
 
+interface Donation {
+  id: string;
+  date: string;
+  friendId: string;
+  donationType: 'Bought CD' | 'Love Offering' | 'Other';
+  checkNumber: string;
+  amount: number;
+  notes: string;
+}
+
 function EditDonationPage() {
   const router = useRouter();
   const { id } = useParams();
@@ -104,20 +114,7 @@ function EditDonationPage() {
     }
   }, [id, router, fetchAllFriends]);
 
-  const handleUpdateDonation = async (
-    data: Omit<
-      {
-        id: string;
-        date: string;
-        friendId: string;
-        donationType: 'Bought CD' | 'Love Offering' | 'Other';
-        checkNumber: string;
-        amount: number;
-        notes: string;
-      },
-      'id'
-    >,
-  ) => {
+  const handleUpdateDonation = async (data: Omit<Donation, 'id'>) => {
     if (!id) return;
 
     try {

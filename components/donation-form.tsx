@@ -102,15 +102,15 @@ export function DonationForm({
             <p className="text-sm text-gray-600">Donation Management</p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-gray-600">Check No.</p>
+            <p className="text-sm text-gray-600">Donation Method / Check No.</p>
             <Input
               type="text"
               value={formData.checkNumber}
               onChange={(e) =>
                 setFormData({ ...formData, checkNumber: e.target.value })
               }
-              placeholder="0000"
-              className="bg-white border-gray-300 text-gray-900 w-24 text-right"
+              placeholder="Check #, PayPal, Zelle, etc."
+              className="bg-white border-gray-300 text-gray-900 w-40 text-right"
             />
           </div>
         </div>

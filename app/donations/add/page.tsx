@@ -7,6 +7,16 @@ import PageHeader from '@/components/pageHeader';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, useCallback, useMemo } from 'react';
 
+interface Donation {
+  id: string;
+  date: string;
+  friendId: string;
+  donationType: 'Bought CD' | 'Love Offering' | 'Other';
+  checkNumber: string;
+  amount: number;
+  notes: string;
+}
+
 function AddDonationPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -87,20 +97,7 @@ function AddDonationPage() {
     }
   }, [friendIdParam, allFriends, prefilledDonation]);
 
-  const handleAddDonation = async (
-    data: Omit<
-      {
-        id: string;
-        date: string;
-        friendId: string;
-        donationType: 'Bought CD' | 'Love Offering' | 'Other';
-        checkNumber: string;
-        amount: number;
-        notes: string;
-      },
-      'id'
-    >,
-  ) => {
+  const handleAddDonation = async (data: Omit<Donation, 'id'>) => {
     try {
       const response = await fetch('/api/donations', {
         method: 'POST',
