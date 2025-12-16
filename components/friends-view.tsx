@@ -1,9 +1,9 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
 import {
   Plus,
   Edit2,
@@ -12,36 +12,36 @@ import {
   ChevronDown,
   Check,
   Eye,
-} from "lucide-react";
-import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
-import { FriendType } from "@/types/DataTypes";
-import { useRouter } from "next/navigation";
+} from 'lucide-react';
+import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
+import { FriendType } from '@/types/DataTypes';
+import { useRouter } from 'next/navigation';
 
 type SortColumn =
-  | "id"
-  | "firstName"
-  | "lastName"
-  | "email"
-  | "phone"
-  | "city"
+  | 'id'
+  | 'firstName'
+  | 'lastName'
+  | 'email'
+  | 'phone'
+  | 'city'
   | null;
-type SortDirection = "asc" | "desc";
+type SortDirection = 'asc' | 'desc';
 
 export function FriendsView() {
   const [friends, setFriends] = useState<FriendType[]>([]);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
   const [sortColumn, setSortColumn] = useState<SortColumn>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const router = useRouter();
 
   const refreshFriends = async () => {
     try {
-      const response = await fetch("/api/friends");
+      const response = await fetch('/api/friends');
       if (!response.ok) {
-        throw new Error("Failed to fetch friends");
+        throw new Error('Failed to fetch friends');
       }
       const data: FriendType[] = await response.json();
       const sortedData = data.sort((a, b) => {
@@ -49,7 +49,7 @@ export function FriendsView() {
       });
       setFriends(sortedData);
     } catch (error) {
-      console.error("Error refreshing friends:", error);
+      console.error('Error refreshing friends:', error);
     }
   };
 
@@ -78,16 +78,16 @@ export function FriendsView() {
     let bVal: any = b[sortColumn];
 
     // Handle null/undefined values
-    if (aVal == null) aVal = "";
-    if (bVal == null) bVal = "";
+    if (aVal == null) aVal = '';
+    if (bVal == null) bVal = '';
 
-    if (typeof aVal === "string") {
+    if (typeof aVal === 'string') {
       aVal = aVal.toLowerCase();
       bVal = (bVal as string).toLowerCase();
     }
 
-    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
-    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+    if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
     return 0;
   });
 
@@ -105,10 +105,10 @@ export function FriendsView() {
 
   const handleSort = (column: SortColumn) => {
     if (sortColumn === column) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
       setSortColumn(column);
-      setSortDirection("asc");
+      setSortDirection('asc');
     }
     setCurrentPage(1);
   };
@@ -117,24 +117,24 @@ export function FriendsView() {
     if (!deleteId) return;
     try {
       const response = await fetch(`/api/friends/${deleteId}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
 
       if (!response.ok) {
-        throw new Error("Failed to delete friend");
+        throw new Error('Failed to delete friend');
       }
 
       setFriends(friends.filter((f) => f.id !== deleteId));
       setDeleteId(null);
     } catch (error) {
-      console.error("Error deleting friend:", error);
+      console.error('Error deleting friend:', error);
     }
   };
 
   const SortIndicator = ({ column }: { column: SortColumn }) => {
     if (sortColumn !== column)
       return <span className="text-gray-400 ml-1">↕</span>;
-    return sortDirection === "asc" ? (
+    return sortDirection === 'asc' ? (
       <ChevronUp className="w-4 h-4 inline ml-1" />
     ) : (
       <ChevronDown className="w-4 h-4 inline ml-1" />
@@ -158,7 +158,7 @@ export function FriendsView() {
           </Button>
           <Button
             onClick={() => {
-              router.push("/friends/add");
+              router.push('/friends/add');
             }}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
@@ -184,39 +184,39 @@ export function FriendsView() {
               <tr className="border-b border-gray-200 bg-gray-50">
                 <th
                   className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort("id")}
+                  onClick={() => handleSort('id')}
                 >
                   ID <SortIndicator column="id" />
                 </th>
                 <th
                   className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort("firstName")}
+                  onClick={() => handleSort('firstName')}
                 >
                   First Name <SortIndicator column="firstName" />
                 </th>
                 <th
                   className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort("lastName")}
+                  onClick={() => handleSort('lastName')}
                 >
                   Last Name <SortIndicator column="lastName" />
                 </th>
                 <th
                   className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort("email")}
+                  onClick={() => handleSort('email')}
                 >
                   Email <SortIndicator column="email" />
                 </th>
                 <th
                   className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort("phone")}
+                  onClick={() => handleSort('phone')}
                 >
                   Phone <SortIndicator column="phone" />
                 </th>
                 <th
                   className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                  onClick={() => handleSort("city")}
+                  onClick={() => handleSort('city')}
                 >
-                  City <SortIndicator column="city" />
+                  Location <SortIndicator column="city" />
                 </th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
                   DNS
@@ -248,7 +248,7 @@ export function FriendsView() {
                     {friend.phone}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    {friend.city}
+                    {friend.city}, {friend.state}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
                     {friend.dns && <Check className="w-5 h-5 text-green-600" />}
@@ -292,8 +292,8 @@ export function FriendsView() {
       <div className="flex items-center justify-between bg-white p-4 rounded-lg border border-gray-200">
         <div className="flex items-center gap-4">
           <span className="text-sm text-gray-600">
-            Showing {startIndex + 1} to{" "}
-            {Math.min(startIndex + itemsPerPage, sortedFriends.length)} of{" "}
+            Showing {startIndex + 1} to{' '}
+            {Math.min(startIndex + itemsPerPage, sortedFriends.length)} of{' '}
             {sortedFriends.length} friends
           </span>
           <div className="flex items-center gap-2">
@@ -335,8 +335,8 @@ export function FriendsView() {
                     onClick={() => setCurrentPage(page)}
                     className={
                       currentPage === page
-                        ? "bg-blue-600 hover:bg-blue-700 text-white"
-                        : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                        : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
                     }
                   >
                     {page}

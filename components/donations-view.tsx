@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card } from '@/components/ui/card';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   Plus,
   Edit2,
@@ -18,24 +18,24 @@ import {
   Printer,
   ChevronUp,
   ChevronDown,
-} from "lucide-react";
-import { DonationDetailView } from "@/components/donation-detail-view";
-import { DeleteConfirmDialog } from "@/components/delete-confirm-dialog";
-import { DonationType, FriendType } from "@/types/DataTypes";
-import { useRouter } from "next/navigation";
+} from 'lucide-react';
+import { DonationDetailView } from '@/components/donation-detail-view';
+import { DeleteConfirmDialog } from '@/components/delete-confirm-dialog';
+import { DonationType, FriendType } from '@/types/DataTypes';
+import { useRouter } from 'next/navigation';
 import {
   generateReceiptsHtml,
   printReceipts,
   generateLabelsHtml,
   printLabels,
-} from "@/lib/receipt-utils";
+} from '@/lib/receipt-utils';
 
 // Define the interface that matches what DonationForm expects
 type Donation = {
   id: string;
   date: string;
   friendId: string;
-  donationType: "Bought CD" | "Love Offering" | "Other";
+  donationType: 'Bought CD' | 'Love Offering' | 'Other';
   checkNumber: string;
   amount: number;
   notes: string;
@@ -50,14 +50,14 @@ const transformDonation = (donation: DonationType): Donation => {
     donationType: donation.Type,
     checkNumber: donation.Check,
     amount: donation.Amount,
-    notes: donation.Notes || "",
+    notes: donation.Notes || '',
   };
 };
 
 // Adapter function to transform DonationForm data to Supabase format
 const transformDonationForSupabase = (
-  donation: Omit<Donation, "id">,
-): Omit<DonationType, "id"> => {
+  donation: Omit<Donation, 'id'>,
+): Omit<DonationType, 'id'> => {
   return {
     created_at: new Date().toISOString(),
     Friend: parseInt(donation.friendId) || 0,
@@ -70,63 +70,86 @@ const transformDonationForSupabase = (
   };
 };
 
-type SortColumn = "id" | "eDate" | "Friend" | "Type" | "Check" | "Amount" | null;
-type SortDirection = "asc" | "desc";
-type YearFilter = "current" | number;
+type SortColumn =
+  | 'id'
+  | 'eDate'
+  | 'Friend'
+  | 'Type'
+  | 'Check'
+  | 'Amount'
+  | null;
+type SortDirection = 'asc' | 'desc';
+type YearFilter = 'current' | number;
 
 export function DonationsView() {
   const [friends, setFriends] = useState<FriendType[]>([]);
   const [donations, setDonations] = useState<DonationType[]>([]);
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(20);
-  const [sortColumn, setSortColumn] = useState<SortColumn>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
+  const [sortColumn, setSortColumn] = useState<SortColumn>('id');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [selectedDonation, setSelectedDonation] = useState<DonationType | null>(
     null,
   );
-  const [yearFilter, setYearFilter] = useState<YearFilter>("current");
+  const [yearFilter, setYearFilter] = useState<YearFilter>('current');
   const router = useRouter();
 
   const refreshFriends = async () => {
     try {
-      const response = await fetch("/api/friends");
+      const response = await fetch('/api/friends');
       if (!response.ok) {
-        throw new Error("Failed to fetch friends");
+        throw new Error('Failed to fetch friends');
       }
       const data: FriendType[] = await response.json();
       setFriends(data);
     } catch (error) {
-      console.error("Error refreshing friends:", error);
+      console.error('Error refreshing friends:', error);
     }
   };
 
   const refreshDonations = async () => {
     try {
-      const response = await fetch("/api/donations");
+      const response = await fetch('/api/donations');
       if (!response.ok) {
-        throw new Error("Failed to fetch donations");
+        throw new Error('Failed to fetch donations');
       }
       const data: DonationType[] = await response.json();
       setDonations(data);
     } catch (error) {
-      console.error("Error refreshing donations:", error);
+      console.error('Error refreshing donations:', error);
       // Optionally show an error message to the user
     }
   };
 
+  const getFriendName = (friendId: number) => {
+    if (!friendId) return 'Unknown Friend';
+    const friend = friends.find((f) => f.id.toString() === friendId.toString());
+    if (friend) {
+      const fullName = `${friend.firstName || ''} ${
+        friend.lastName || ''
+      }`.trim();
+      return fullName ? `${fullName} (${friendId})` : `Friend ID: ${friendId}`;
+    }
+    return `Friend ID: ${friendId}`;
+  };
+
   // Fetch donations and friends when component mounts
   useEffect(() => {
-    console.log("DonationsView useEffect triggered");
+    console.log('DonationsView useEffect triggered');
     refreshDonations();
     refreshFriends();
   }, []);
 
   // Filter donations by search term, year, and date range
   const filteredDonations = donations.filter((d) => {
-    // Search filter - search by ID, Check Number, Amount, Date, and Notes
+    // Search filter - search by ID, Check Number, Amount, Date, Notes, and Friend Name
     const searchLower = searchTerm.toLowerCase();
+
+    // Get friend name for this donation
+    const friendName = getFriendName(d.Friend);
+
     const matchesSearch =
       // ID search
       (d.id && d.id.toString().toLowerCase().includes(searchLower)) ||
@@ -137,7 +160,9 @@ export function DonationsView() {
       // Date search (search in formatted date string)
       (d.eDate && d.eDate.toLowerCase().includes(searchLower)) ||
       // Notes search
-      (d.Notes && d.Notes.toLowerCase().includes(searchLower));
+      (d.Notes && d.Notes.toLowerCase().includes(searchLower)) ||
+      // Friend name search
+      (friendName && friendName.toLowerCase().includes(searchLower));
 
     if (!matchesSearch) return false;
 
@@ -145,7 +170,7 @@ export function DonationsView() {
     const donationDate = new Date(d.eDate);
     const donationYear = donationDate.getFullYear();
 
-    if (yearFilter === "current") {
+    if (yearFilter === 'current') {
       // Default: Jan 1st of last year to today
       const lastYear = new Date().getFullYear() - 1;
       const startDate = new Date(lastYear, 0, 1); // Jan 1st of last year
@@ -166,26 +191,26 @@ export function DonationsView() {
     let bVal: any = b[sortColumn as keyof typeof b];
 
     // Handle undefined/null values
-    if (aVal == null) aVal = "";
-    if (bVal == null) bVal = "";
+    if (aVal == null) aVal = '';
+    if (bVal == null) bVal = '';
 
-    if (sortColumn === "eDate") {
+    if (sortColumn === 'eDate') {
       aVal = new Date(aVal).getTime();
       bVal = new Date(bVal).getTime();
-    } else if (sortColumn === "Amount") {
+    } else if (sortColumn === 'Amount') {
       aVal = Number.parseFloat(aVal) || 0;
       bVal = Number.parseFloat(bVal) || 0;
-    } else if (sortColumn === "id") {
-      // Sort IDs as strings (case-insensitive)
-      aVal = aVal.toString().toLowerCase();
-      bVal = bVal.toString().toLowerCase();
-    } else if (typeof aVal === "string" && typeof bVal === "string") {
+    } else if (sortColumn === 'id') {
+      // Sort IDs as numbers for proper numerical sorting
+      aVal = parseInt(aVal, 10) || 0;
+      bVal = parseInt(bVal, 10) || 0;
+    } else if (typeof aVal === 'string' && typeof bVal === 'string') {
       aVal = aVal.toLowerCase();
       bVal = bVal.toLowerCase();
     }
 
-    if (aVal < bVal) return sortDirection === "asc" ? -1 : 1;
-    if (aVal > bVal) return sortDirection === "asc" ? 1 : -1;
+    if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+    if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
     return 0;
   });
 
@@ -202,8 +227,8 @@ export function DonationsView() {
   };
 
   const handleYearFilterChange = (value: string) => {
-    if (value === "current") {
-      setYearFilter("current");
+    if (value === 'current') {
+      setYearFilter('current');
     } else {
       setYearFilter(parseInt(value));
     }
@@ -212,10 +237,10 @@ export function DonationsView() {
 
   const handleSort = (column: SortColumn) => {
     if (sortColumn === column) {
-      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
       setSortColumn(column);
-      setSortDirection("asc");
+      setSortDirection('asc');
     }
     setCurrentPage(1);
   };
@@ -225,31 +250,19 @@ export function DonationsView() {
 
     try {
       const response = await fetch(`/api/donations/${deleteId}`, {
-        method: "DELETE",
+        method: 'DELETE',
       });
 
       if (!response.ok) {
-        throw new Error("Failed to delete donation");
+        throw new Error('Failed to delete donation');
       }
 
       setDonations(donations.filter((d) => d.id !== deleteId));
       setDeleteId(null);
     } catch (error) {
-      console.error("Error deleting donation:", error);
+      console.error('Error deleting donation:', error);
       // Optionally show an error message to the user
     }
-  };
-
-  const getFriendName = (friendId: number) => {
-    if (!friendId) return "Unknown Friend";
-    const friend = friends.find((f) => f.id.toString() === friendId.toString());
-    if (friend) {
-      const fullName = `${friend.firstName || ""} ${
-        friend.lastName || ""
-      }`.trim();
-      return fullName ? `${fullName} (${friendId})` : `Friend ID: ${friendId}`;
-    }
-    return `Friend ID: ${friendId}`;
   };
 
   const handlePrintReceipts = () => {
@@ -259,7 +272,7 @@ export function DonationsView() {
       const lastYear = new Date().getFullYear() - 1;
       printReceipts(htmlContent, lastYear);
     } catch (error: any) {
-      alert(error.message || "Error generating receipts");
+      alert(error.message || 'Error generating receipts');
     }
   };
 
@@ -270,14 +283,14 @@ export function DonationsView() {
       const lastYear = new Date().getFullYear() - 1;
       printLabels(htmlContent, lastYear);
     } catch (error: any) {
-      alert(error.message || "Error generating labels");
+      alert(error.message || 'Error generating labels');
     }
   };
 
   const SortIndicator = ({ column }: { column: SortColumn }) => {
     if (sortColumn !== column)
       return <span className="text-gray-400 ml-1">↕</span>;
-    return sortDirection === "asc" ? (
+    return sortDirection === 'asc' ? (
       <ChevronUp className="w-4 h-4 inline ml-1" />
     ) : (
       <ChevronDown className="w-4 h-4 inline ml-1" />
@@ -290,7 +303,7 @@ export function DonationsView() {
     const years = [];
 
     // Add "Current" option
-    years.push({ value: "current", label: "Current" });
+    years.push({ value: 'current', label: 'Current' });
 
     // Add years from current year down to 2005
     for (let year = currentYear; year >= 2005; year--) {
@@ -350,7 +363,7 @@ export function DonationsView() {
             </Button>
             <Button
               onClick={() => {
-                router.push("/donations/add");
+                router.push('/donations/add');
               }}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
@@ -366,7 +379,7 @@ export function DonationsView() {
         <div className="flex gap-2 mb-6">
           <div className="flex-1">
             <Input
-              placeholder="Search by ID, Check #, Amount, Date, or Notes..."
+              placeholder="Search by ID, Check #, Amount, Date, Notes, or Friend Name..."
               value={searchTerm}
               onChange={(e) => handleSearch(e.target.value)}
               className="bg-white border-gray-300 text-gray-900 placeholder-gray-500"
@@ -375,7 +388,7 @@ export function DonationsView() {
           <div className="w-32">
             <Select
               value={
-                yearFilter === "current" ? "current" : yearFilter.toString()
+                yearFilter === 'current' ? 'current' : yearFilter.toString()
               }
               onValueChange={handleYearFilterChange}
             >
@@ -403,37 +416,37 @@ export function DonationsView() {
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th
                     className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort("id")}
+                    onClick={() => handleSort('id')}
                   >
                     ID <SortIndicator column="id" />
                   </th>
                   <th
                     className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort("eDate")}
+                    onClick={() => handleSort('eDate')}
                   >
                     Date <SortIndicator column="eDate" />
                   </th>
                   <th
                     className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort("Friend")}
+                    onClick={() => handleSort('Friend')}
                   >
                     Friend <SortIndicator column="Friend" />
                   </th>
                   <th
                     className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort("Type")}
+                    onClick={() => handleSort('Type')}
                   >
                     Type <SortIndicator column="Type" />
                   </th>
                   <th
                     className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort("Check")}
+                    onClick={() => handleSort('Check')}
                   >
                     Check # <SortIndicator column="Check" />
                   </th>
                   <th
                     className="px-6 py-3 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort("Amount")}
+                    onClick={() => handleSort('Amount')}
                   >
                     Amount <SortIndicator column="Amount" />
                   </th>
@@ -456,25 +469,25 @@ export function DonationsView() {
                     }}
                   >
                     <td className="px-6 py-4 text-sm text-gray-900">
-                      {donation.id || ""}
+                      {donation.id || ''}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
-                      {donation.eDate || ""}
+                      {donation.eDate || ''}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
                       {getFriendName(donation.Friend)}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
-                      {donation.Type || ""}
+                      {donation.Type || ''}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
-                      {donation.Check || ""}
+                      {donation.Check || ''}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
                       ${(donation.Amount || 0).toFixed(2)}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
-                      {donation.Notes || ""}
+                      {donation.Notes || ''}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       <div className="flex gap-2">
@@ -512,8 +525,8 @@ export function DonationsView() {
         <div className="flex items-center justify-between bg-white p-4 border border-gray-200 rounded-lg">
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-600">
-              Showing {startIndex + 1} to{" "}
-              {Math.min(startIndex + itemsPerPage, sortedDonations.length)} of{" "}
+              Showing {startIndex + 1} to{' '}
+              {Math.min(startIndex + itemsPerPage, sortedDonations.length)} of{' '}
               {sortedDonations.length} donations
             </span>
             <div className="flex items-center gap-2">
@@ -555,8 +568,8 @@ export function DonationsView() {
                       onClick={() => setCurrentPage(page)}
                       className={
                         currentPage === page
-                          ? "bg-blue-600 hover:bg-blue-700 text-white"
-                          : "bg-gray-200 hover:bg-gray-300 text-gray-900"
+                          ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                          : 'bg-gray-200 hover:bg-gray-300 text-gray-900'
                       }
                     >
                       {page}

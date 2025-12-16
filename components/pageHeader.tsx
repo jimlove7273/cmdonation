@@ -1,10 +1,18 @@
-import React from "react";
-import { useAuth } from "@/contexts/AuthContext";
-import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import React from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { LogOut } from 'lucide-react';
 
 const PageHeader = () => {
   const { logout, username } = useAuth();
+
+  // Show a default value if username is null or undefined
+  const displayName = username
+    ? username === 'cmdonation'
+      ? 'Admin'
+      : username
+    : 'User';
+
   return (
     <header className="bg-white border-b border-gray-200 px-6 py-4">
       <div className="flex items-center justify-between">
@@ -13,7 +21,7 @@ const PageHeader = () => {
         </h1>
         <div className="flex items-center gap-4">
           <span className="text-gray-700 font-medium text-sm">
-            Hello, {username === "cmdonation" ? "Admin" : ""}
+            Hello, {displayName}
           </span>
           <Button
             onClick={logout}
