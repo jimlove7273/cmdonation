@@ -451,9 +451,6 @@ export function DonationsView() {
                     Amount <SortIndicator column="Amount" />
                   </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
-                    Notes
-                  </th>
-                  <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">
                     Actions
                   </th>
                 </tr>
@@ -485,9 +482,6 @@ export function DonationsView() {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
                       ${(donation.Amount || 0).toFixed(2)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900 max-w-xs truncate">
-                      {donation.Notes || ''}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       <div className="flex gap-2">

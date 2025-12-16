@@ -6,18 +6,17 @@ import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Search, X } from 'lucide-react';
 
 interface Friend {
   id: string;
   firstName: string;
   lastName: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zipcode?: string;
+  email?: string;
 }
 
 interface Donation {
@@ -52,6 +51,7 @@ export function DonationForm({
     notes: donation?.notes || '',
   });
   const [friendSearchTerm, setFriendSearchTerm] = useState('');
+  const [showFriendSearch, setShowFriendSearch] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,6 +77,20 @@ export function DonationForm({
   const payeeName = selectedFriend
     ? `${selectedFriend.firstName} ${selectedFriend.lastName}`
     : '';
+
+  const handleFriendSearch = () => {
+    setShowFriendSearch(true);
+  };
+
+  const handleFriendSelect = (friendId: string) => {
+    setFormData({ ...formData, friendId });
+    setShowFriendSearch(false);
+    setFriendSearchTerm('');
+  };
+
+  const handleClearFriend = () => {
+    setFormData({ ...formData, friendId: '' });
+  };
 
   return (
     <Card className="bg-white border-gray-300 p-8 max-w-3xl mx-auto">
@@ -124,35 +138,122 @@ export function DonationForm({
                 Donation Received From:
               </span>
             </div>
-            <Select
-              value={formData.friendId}
-              onValueChange={(value) =>
-                setFormData({ ...formData, friendId: value })
-              }
-            >
-              <SelectTrigger className="bg-white border-b border-gray-300 text-gray-900 text-lg w-full rounded-none border-t-0 border-l-0 border-r-0 focus:ring-0 focus:ring-offset-0 px-0 py-1 h-auto">
-                <SelectValue placeholder="Select a friend">
-                  {payeeName || 'Select a friend'}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent className="bg-white border-gray-300 max-h-60">
-                <div className="p-2 sticky top-0 bg-white border-b border-gray-200">
+
+            {/* Improved friend selection UI */}
+            {!showFriendSearch ? (
+              <div className="space-y-2 mb-4">
+                {selectedFriend ? (
+                  <div className="p-3 border border-gray-300 rounded-md bg-gray-50 max-w-sm">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="font-medium">{payeeName}</div>
+                        <div className="text-sm text-gray-600 mt-1">
+                          <div>ID: {selectedFriend.id}</div>
+                          {selectedFriend.address && (
+                            <div>{selectedFriend.address}</div>
+                          )}
+                          {(selectedFriend.city ||
+                            selectedFriend.state ||
+                            selectedFriend.zipcode) && (
+                            <div>
+                              {selectedFriend.city}
+                              {selectedFriend.city && ', '}
+                              {selectedFriend.state} {selectedFriend.zipcode}
+                            </div>
+                          )}
+                          {selectedFriend.email && (
+                            <div className="mt-1">{selectedFriend.email}</div>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={handleClearFriend}
+                        className="h-6 w-6"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex gap-2 max-w-sm">
+                    <div className="relative flex-1">
+                      <Input
+                        placeholder="Search for a friend..."
+                        value={friendSearchTerm}
+                        onChange={(e) => setFriendSearchTerm(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleFriendSearch();
+                          }
+                        }}
+                        className="bg-white border-gray-300 text-gray-900 placeholder-gray-500 pr-10"
+                      />
+                      <Button
+                        type="button"
+                        onClick={handleFriendSearch}
+                        className="absolute right-0 top-0 h-full bg-blue-200 hover:bg-blue-300 text-gray-900 rounded-l-none px-3"
+                      >
+                        <Search className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="border border-gray-300 rounded-md bg-white">
+                <div className="p-2 border-b border-gray-200">
                   <Input
                     placeholder="Search friends..."
                     value={friendSearchTerm}
                     onChange={(e) => setFriendSearchTerm(e.target.value)}
+                    autoFocus
                     className="bg-white border-gray-300 text-gray-900 placeholder-gray-500"
                   />
                 </div>
-                <div className="max-h-40 overflow-y-auto">
-                  {filteredFriends.map((friend) => (
-                    <SelectItem key={friend.id} value={friend.id}>
-                      {friend.firstName} {friend.lastName}
-                    </SelectItem>
-                  ))}
+                <div className="max-h-60 overflow-y-auto">
+                  {filteredFriends.length > 0 ? (
+                    filteredFriends.map((friend) => (
+                      <div
+                        key={friend.id}
+                        className="p-3 border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                        onClick={() => handleFriendSelect(friend.id)}
+                      >
+                        <div className="font-medium">
+                          {friend.firstName} {friend.lastName}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          ID: {friend.id}
+                        </div>
+                        {friend.email && (
+                          <div className="text-sm text-gray-600">
+                            {friend.email}
+                          </div>
+                        )}
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-3 text-center text-gray-500">
+                      No friends found
+                    </div>
+                  )}
                 </div>
-              </SelectContent>
-            </Select>
+                <div className="p-2 border-t border-gray-200 flex justify-end">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setShowFriendSearch(false);
+                      setFriendSearchTerm('');
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
           <div>
             <div className="flex items-center mb-2">
@@ -174,44 +275,6 @@ export function DonationForm({
           </div>
         </div>
 
-        {/* Memo */}
-        <div className="mb-8">
-          <div className="flex items-center mb-2">
-            <span className="text-sm text-gray-600 mr-2">For:</span>
-          </div>
-          <Select
-            value={formData.donationType}
-            onValueChange={(value: any) =>
-              setFormData({ ...formData, donationType: value })
-            }
-          >
-            <SelectTrigger className="bg-white border-b border-gray-300 text-gray-900 rounded-none border-t-0 border-l-0 border-r-0 focus:ring-0 focus:ring-offset-0 px-0 py-1 h-auto">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-white border-gray-300">
-              <SelectItem value="Bought CD">Bought CD</SelectItem>
-              <SelectItem value="Love Offering">Love Offering</SelectItem>
-              <SelectItem value="Other">Other</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Notes section */}
-        <div className="mb-6">
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Notes
-          </label>
-          <textarea
-            value={formData.notes}
-            onChange={(e) =>
-              setFormData({ ...formData, notes: e.target.value })
-            }
-            placeholder="Enter additional notes"
-            rows={3}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
         {/* Form actions */}
         {donation && (
           <div className="mb-4 p-3 bg-gray-100 border border-gray-200 rounded-md">
@@ -222,7 +285,7 @@ export function DonationForm({
           </div>
         )}
 
-        <div className="flex gap-2 justify-end">
+        <div className="flex gap-2 justify-end mt-4">
           <Button
             type="button"
             onClick={onCancel}

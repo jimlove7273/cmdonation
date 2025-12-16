@@ -33,6 +33,11 @@ function EditDonationPage() {
         id: f.id.toString(), // Ensure ID is a string
         firstName: f.firstName || '',
         lastName: f.lastName || '',
+        address: f.address || '',
+        city: f.city || '',
+        state: f.state || '',
+        zipcode: f.zipcode || '',
+        email: f.email || '',
       }));
 
       setAllFriends(mappedFriends);
