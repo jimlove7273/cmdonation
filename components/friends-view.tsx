@@ -248,7 +248,13 @@ export function FriendsView() {
                     {friend.phone}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
-                    {friend.city}, {friend.state}
+                    {friend.city || friend.state ? (
+                      <span className="text-gray-500">
+                        {friend.city}, {friend.state}
+                      </span>
+                    ) : (
+                      ''
+                    )}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
                     {friend.dns && <Check className="w-5 h-5 text-green-600" />}
