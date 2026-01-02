@@ -12,7 +12,6 @@ function friendToDb(friend: Omit<FriendType, 'id'>): any {
   return {
     firstName: friend.firstName,
     lastName: friend.lastName,
-    chineseName: friend.chineseName,
     address: friend.address,
     city: friend.city,
     state: friend.state,
@@ -30,7 +29,6 @@ function dbToFriend(dbFriend: any): FriendType {
     id: dbFriend.id,
     firstName: dbFriend.firstName,
     lastName: dbFriend.lastName,
-    chineseName: dbFriend.chineseName,
     address: dbFriend.address,
     city: dbFriend.city,
     state: dbFriend.state,

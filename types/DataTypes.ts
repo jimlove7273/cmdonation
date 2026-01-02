@@ -2,7 +2,6 @@ export type FriendType = {
   id: string;
   firstName: string;
   lastName: string;
-  chineseName: string;
   address: string;
   city: string;
   state: string;

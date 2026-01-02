@@ -14,7 +14,6 @@ export function FriendForm({ friend, onSubmit, onCancel }: FriendFormProps) {
   const [formData, setFormData] = useState({
     firstName: friend?.firstName || '',
     lastName: friend?.lastName || '',
-    chineseName: friend?.chineseName || '',
     address: friend?.address || '',
     city: friend?.city || '',
     state: friend?.state || '',
@@ -75,21 +74,6 @@ export function FriendForm({ friend, onSubmit, onCancel }: FriendFormProps) {
               className="bg-white border-gray-300 text-gray-900 placeholder-gray-500"
             />
           </div>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Chinese Name
-          </label>
-          <Input
-            type="text"
-            value={formData.chineseName}
-            onChange={(e) =>
-              setFormData({ ...formData, chineseName: e.target.value })
-            }
-            placeholder="Chinese Name"
-            className="bg-white border-gray-300 text-gray-900 placeholder-gray-500"
-          />
         </div>
 
         <div>
