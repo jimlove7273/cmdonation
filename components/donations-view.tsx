@@ -87,8 +87,8 @@ export function DonationsView() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(20);
-  const [sortColumn, setSortColumn] = useState<SortColumn>('id');
+  const [itemsPerPage, setItemsPerPage] = useState(100);
+  const [sortColumn, setSortColumn] = useState<SortColumn>('eDate');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [selectedDonation, setSelectedDonation] = useState<DonationType | null>(
     null,
