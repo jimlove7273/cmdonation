@@ -137,7 +137,6 @@ export function DonationsView() {
 
   // Fetch donations and friends when component mounts
   useEffect(() => {
-    console.log('DonationsView useEffect triggered');
     refreshDonations();
     refreshFriends();
   }, []);

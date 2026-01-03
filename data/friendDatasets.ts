@@ -71,40 +71,71 @@ export async function getOneFriend(id: string): Promise<FriendType | null> {
 }
 
 /**
- * Create a new friend in the database.
- * @param friend - The friend data to create (without ID as it should be auto-generated)
+ * Create a new friend in the database with a unique ID that is one greater than the maximum existing ID.
+ * Implements retry logic to handle potential race conditions during ID assignment.
+ * @param friend - The friend data to create
  * @returns Promise<FriendType | null> - The created friend object or null on error
  */
 export async function createFriend(
   friend: Omit<FriendType, 'id'>,
 ): Promise<FriendType | null> {
   try {
+    // Get all existing friends to find the maximum ID
+    const allFriends = await getAllFriends();
+
+    // Find the highest ID currently in the database
+    const maxId =
+      allFriends.length > 0
+        ? Math.max(...allFriends.map((f) => parseInt(f.id)))
+        : 0;
+
+    // Set the new ID to be one greater than the maximum
+    let newId = maxId + 1;
+
+    // Add the new ID to the friend data
     const dbFriendData = friendToDb(friend);
-    const newFriend: any = await createOne(
-      DATASETS.DONATION_FRIENDS,
-      dbFriendData,
-    );
+
+    // Insert the record with the calculated ID
+    let newFriend: any = null;
+    let attempts = 0;
+    const maxAttempts = 5; // Limit retry attempts
+
+    while (attempts < maxAttempts) {
+      try {
+        newFriend = await createOne(DATASETS.DONATION_FRIENDS, {
+          ...dbFriendData,
+          id: newId,
+        });
+        break; // Exit the loop if successful
+      } catch (createError: any) {
+        // If it's a duplicate key error, increment the ID and try again
+        if (
+          createError.code === '23505' ||
+          createError.message.includes('duplicate') ||
+          createError.message.includes('unique')
+        ) {
+          // Get updated max ID in case other records were added
+          const updatedFriends = await getAllFriends();
+          const updatedMaxId =
+            updatedFriends.length > 0
+              ? Math.max(...updatedFriends.map((f) => parseInt(f.id)))
+              : 0;
+          newId = updatedMaxId + 1;
+          attempts++;
+        } else {
+          // Re-throw if it's a different error
+          throw createError;
+        }
+      }
+    }
+
+    if (!newFriend) {
+      throw new Error(`Failed to create friend after ${maxAttempts} attempts`);
+    }
+
     return newFriend ? dbToFriend(newFriend) : null;
   } catch (error: any) {
     console.error('Error creating friend:', error);
-    // If there's a duplicate key error, try to handle it by not passing an ID
-    if (error.code === '23505') {
-      // This is a duplicate key error, which suggests ID conflict
-      // Try again without explicitly setting any ID-related fields
-      try {
-        const dbFriendData = friendToDb(friend);
-        // Ensure no ID-related fields are passed
-        const cleanData = { ...dbFriendData };
-        const newFriend: any = await createOne(
-          DATASETS.DONATION_FRIENDS,
-          cleanData,
-        );
-        return newFriend ? dbToFriend(newFriend) : null;
-      } catch (retryError) {
-        console.error('Retry error creating friend:', retryError);
-        return null;
-      }
-    }
     return null;
   }
 }

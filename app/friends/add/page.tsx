@@ -12,7 +12,6 @@ function AddFriendPage() {
 
   const handleAddFriend = async (data: Omit<FriendType, 'id'>) => {
     try {
-      debugger;
       const response = await fetch('/api/friends', {
         method: 'POST',
         headers: {

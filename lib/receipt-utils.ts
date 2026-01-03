@@ -187,7 +187,11 @@ export function generateLabelsHtml(
   const labelsPerPage = 14;
   const cols = 2;
 
-  function renderLabelWithPosition(friend: FriendType | null, leftInches: number, topInches: number) {
+  function renderLabelWithPosition(
+    friend: FriendType | null,
+    leftInches: number,
+    topInches: number,
+  ) {
     if (!friend) {
       // empty placeholder - still need to render for spacing consistency
       return `<div style="
@@ -224,8 +228,8 @@ export function generateLabelsHtml(
             friend.id
           }</div>
           <div style="font-size: 14px;">${friend.firstName || ''} ${
-        friend.lastName || ''
-      }</div>
+      friend.lastName || ''
+    }</div>
           <div style="font-size: 14px;">${street}</div>
           <div style="font-size: 14px;">${cityLine} ${stateZip}</div>
         </div>
