@@ -14,6 +14,8 @@ type AuthContextType = {
   login: (username: string, password: string) => boolean;
   logout: () => void;
   isLoading: boolean;
+  showInactivityModal: boolean;
+  closeInactivityModal: () => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,6 +28,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [showInactivityModal, setShowInactivityModal] = useState(false);
   const inactivityTimer = useRef<NodeJS.Timeout | null>(null);
   const INACTIVITY_LIMIT = 20 * 60 * 1000;
 
@@ -38,7 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (isAuthenticated) {
       inactivityTimer.current = setTimeout(() => {
         logout();
-        alert('You have been logged out due to inactivity.');
+        setShowInactivityModal(true);
         // Note: We can't redirect here because this is a context provider
         // Redirecting should be handled in the components that use this context
       }, INACTIVITY_LIMIT);
@@ -131,9 +134,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const closeInactivityModal = () => {
+    setShowInactivityModal(false);
+  };
+
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, username, login, logout, isLoading }}
+      value={{
+        isAuthenticated,
+        username,
+        login,
+        logout,
+        isLoading,
+        showInactivityModal,
+        closeInactivityModal,
+      }}
     >
       {children}
     </AuthContext.Provider>

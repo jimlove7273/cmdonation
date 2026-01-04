@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { Roboto } from 'next/font/google';
 import { Analytics } from '@vercel/analytics/next';
 import { AuthProvider } from '@/contexts/AuthContext';
+import { InactivityModal } from '@/components/inactivity-modal';
 import './globals.css';
 
 const _roboto = Roboto({ weight: ['400', '500', '700'], subsets: ['latin'] });
@@ -21,7 +22,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="font-sans antialiased">
-        <AuthProvider>{children}</AuthProvider>
+        <AuthProvider>
+          {children}
+          <InactivityModal />
+        </AuthProvider>
         <Analytics />
       </body>
     </html>
