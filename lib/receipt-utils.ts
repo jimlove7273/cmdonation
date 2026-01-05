@@ -49,12 +49,21 @@ export function generateReceiptsHtml(
 
       // Generate donation rows
       const donationRows = friendDonations
+        .sort((a, b) => {
+          return new Date(a.eDate).getTime() - new Date(b.eDate).getTime();
+        })
         .map(
           (d: DonationType) => `
           <tr>
             <td style="padding: 3px 0; font-size: 14px;">${d.eDate}</td>
             <td style="padding: 3px 0; font-size: 14px;">${
-              d.Check === 'paypal' ? 'PayPal' : `CK ${d.Check}`
+              d.Check === 'paypal'
+                ? 'PayPal'
+                : d.Check.startsWith('ACH')
+                ? d.Check
+                : d.Check === 'zelle'
+                ? 'Zelle'
+                : `Check #${d.Check}`
             }</td>
             <td style="padding: 3px 0; font-size: 14px;">$${d.Amount.toFixed(
               2,
