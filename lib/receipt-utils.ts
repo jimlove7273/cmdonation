@@ -90,7 +90,7 @@ export function generateReceiptsHtml(
               <div>${friend.address || ''}</div>
               <div>${friend.city ? `${friend.city},` : ''} ${
         friend.state || ''
-      } ${friend.zipcode || ''}</div>
+      } ${String(friend.zipcode).padStart(5, '0') || ''}</div>
             </div>
             
             <p style="margin: 35px 0 30px 0;">${new Date().toLocaleDateString(
